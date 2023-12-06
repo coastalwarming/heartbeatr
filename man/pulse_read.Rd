@@ -40,7 +40,9 @@ paths <- pulse_example("RAW_original_")
 pulse_read(paths, with_progress = TRUE)
 }
 \seealso{
-\code{\link[progressr:handlers]{progressr::handlers()}}
-
-\code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=PULSE]{PULSE()}}
+\itemize{
+\item check \code{\link[progressr:handlers]{progressr::handlers()}} to customize the reporting of progress
+\item \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}} are the other functions needed for the complete PULSE processing workflow
+\item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
+}
 }

@@ -13,7 +13,7 @@ pulse_example(pattern = NULL)
 The full path to one or more example files, or the filenames of all example files available.
 }
 \description{
-'pulse' comes bundled with several sample files in its inst/extdata directory. This function make them easy to access
+\code{heartbeatr-package} comes bundled with several sample files in its inst/extdata directory. This function make them easy to access
 }
 \examples{
 # Get the filenames of all example files

@@ -168,9 +168,10 @@ pulse_read_checks <- function(paths) {
 #' @param with_progress One of `TRUE`, `FALSE` or `NULL` (default) to choose whether to show progress bars or not (based on the `progressr` package). `TRUE` prints a `cli`-style progress bar; `FALSE` disables progress bars altogether; if set to `NULL`, the behavior is controlled by the user from outside this function (by setting the desired `handlers()`; in addition, setting `handlers(global = TRUE)` ensures the same behavior is used across the entire session).
 #' @param msg A logical to decide if non-crucial messages (but not errors) are shown (defaults to `TRUE`; mainly for use from within the wrapper function `PULSE()`, where it is set to `FALSE` to avoid the repetition of identical messages)
 #'
-#' @seealso [progressr::handlers()]
-#'
-#' [pulse_split()], [pulse_optimize()], [pulse_heart()], [PULSE()]
+#' @seealso
+#'  * check [progressr::handlers()] to customize the reporting of progress
+#'  * [pulse_split()], [pulse_optimize()], [pulse_heart()] are the other functions needed for the complete PULSE processing workflow
+#'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once
 #'
 #' @return
 #' A list with two elements:

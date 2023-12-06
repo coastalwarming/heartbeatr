@@ -1,43 +1,43 @@
 data <- t_pks <- id <- sd <- n <- msg <- time <- hz <- hz_norm <- peak <- val <- NULL
 
 is.pulse <- function(path) {
-  lines <- path %>%
-    readr::read_lines(n_max = 50) %>%
-    stringr::str_to_lower()
+	lines <- path %>%
+		readr::read_lines(n_max = 50) %>%
+		stringr::str_to_lower()
 
-  has.eb <- lines %>%
-    stringr::str_detect("www.electricblue.eu") %>%
-    any()
+	has.eb <- lines %>%
+		stringr::str_detect("www.electricblue.eu") %>%
+		any()
 
-  has.pulse <- lines %>%
-    stringr::str_detect("pulse") %>%
-    any()
+	has.pulse <- lines %>%
+		stringr::str_detect("pulse") %>%
+		any()
 
-  return(has.eb & has.pulse)
+	return(has.eb & has.pulse)
 }
 
 ## CHECK THIS FUNCTION
 is.pulse.tbl <- function(tbl) {
-  lgl <- all(tibble::is_tibble(tbl))
-  if (lgl) lgl <- (colnames(tbl)[1] == "time")
-  if (lgl) lgl <- (class(tbl$time)[1] == "POSIXct")
-  if (lgl) lgl <- (all(class(tbl[,-1] %>% unlist()) == "numeric"))
-  lgl
+	lgl <- all(tibble::is_tibble(tbl))
+	if (lgl) lgl <- (colnames(tbl)[1] == "time")
+	if (lgl) lgl <- (class(tbl$time)[1] == "POSIXct")
+	if (lgl) lgl <- (all(class(tbl[,-1] %>% unlist()) == "numeric"))
+	lgl
 }
 
 is.pulse.multi <- function(path) {
-  lines <- path %>%
-    readr::read_lines(n_max = 50) %>%
-    stringr::str_to_lower()  %>%
-    stringr::str_detect("downloading device type") %>%
-    any() %>%
-    magrittr::not()
+	lines <- path %>%
+		readr::read_lines(n_max = 50) %>%
+		stringr::str_to_lower()  %>%
+		stringr::str_detect("downloading device type") %>%
+		any() %>%
+		magrittr::not()
 }
 
 #' Get paths to pulse example files
 #'
 #' @description
-#' `pulse-package` comes bundled with several sample files in its inst/extdata directory. This function make them easy to access
+#' `heartbeatr-package` comes bundled with several sample files in its inst/extdata directory. This function make them easy to access
 #'
 #' @param pattern Pattern to select one or more example files. Pattern is vectorized, so more than one value can be supplied. If NULL, all example files are listed.
 #'
@@ -59,15 +59,15 @@ is.pulse.multi <- function(path) {
 #' # 'pulse_example()' is vectorized, meaning that multiple search strings can be used
 #' pulse_example(c("RAW_or", "not_a_"))
 pulse_example <- function(pattern = NULL) {
-  filenames <- dir(system.file("extdata", package = "pulse"))
-  if (is.null(pattern)) {
-    filenames
-  } else {
-    targets <- pattern %>%
-      purrr::map(~stringr::str_subset(filenames, .x)) %>%
-      unlist()
-    system.file("extdata", targets, package = "pulse", mustWork = TRUE)
-  }
+	filenames <- dir(system.file("extdata", package = "heartbeatr"))
+	if (is.null(pattern)) {
+		filenames
+	} else {
+		targets <- pattern %>%
+			purrr::map(~stringr::str_subset(filenames, .x)) %>%
+			unlist()
+		system.file("extdata", targets, package = "heartbeatr", mustWork = TRUE)
+	}
 }
 
 #' Normalize PULSE heartbeat rate estimates
@@ -119,24 +119,24 @@ pulse_example <- function(pattern = NULL) {
 #'   pulse_normalize(heart_rates[!(heart_rates$id %in% group_1), ], span_mins = 30)
 #' )
 pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
-  stopifnot(is.numeric(span_mins))
-  stopifnot(length(span_mins) == 1)
-  if (!is.null(t0)) if (class(t0)[1] != "POSIXct") stop("\n  --> [x] t0 must be either 'NULL' or a POSIXct object")
+	stopifnot(is.numeric(span_mins))
+	stopifnot(length(span_mins) == 1)
+	if (!is.null(t0)) if (class(t0)[1] != "POSIXct") stop("\n  --> [x] t0 must be either 'NULL' or a POSIXct object")
 
-  if (is.null(t0)) t0 <- min(heart_rates$time)
+	if (is.null(t0)) t0 <- min(heart_rates$time)
 
-  # find the basal heart rate
-  baseline <- heart_rates %>%
-    dplyr::filter(dplyr::between(time, t0, t0 + span_mins * 60)) %>%
-    dplyr::group_by(id) %>%
-    dplyr::summarise(hz_norm = mean(hz))
+	# find the basal heart rate
+	baseline <- heart_rates %>%
+		dplyr::filter(dplyr::between(time, t0, t0 + span_mins * 60)) %>%
+		dplyr::group_by(id) %>%
+		dplyr::summarise(hz_norm = mean(hz))
 
-  # compute the normalized heartbeat rate
-  heart_rates <- dplyr::left_join(heart_rates, baseline, by = "id") %>%
-    dplyr::mutate(hz_norm = hz / hz_norm)
+	# compute the normalized heartbeat rate
+	heart_rates <- dplyr::left_join(heart_rates, baseline, by = "id") %>%
+		dplyr::mutate(hz_norm = hz / hz_norm)
 
-  # return
-  return(heart_rates)
+	# return
+	return(heart_rates)
 }
 
 #' Summarise PULSE heartbeat rate estimates over new time windows
@@ -204,13 +204,13 @@ pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
 #' # or disable the smoothing curve
 #' pulse_plot_all(pulse_summarise(heart_rates, span_mins = 5), smooth = FALSE)
 pulse_summarise <- function(heart_rates, fun = stats::median, span_mins = 10, min_data_points = 2) {
-  heart_rates %>%
-    dplyr::group_by(id, time = lubridate::floor_date(time, stringr::str_c(span_mins, " mins"))) %>%
-    dplyr::summarise(
-      sd = stats::sd(hz),
-      hz = fun(hz),
-      n  = dplyr::n(),
-      .groups = "drop"
-    ) %>%
-    dplyr::filter(n > min_data_points)
+	heart_rates %>%
+		dplyr::group_by(id, time = lubridate::floor_date(time, stringr::str_c(span_mins, " mins"))) %>%
+		dplyr::summarise(
+			sd = stats::sd(hz),
+			hz = fun(hz),
+			n  = dplyr::n(),
+			.groups = "drop"
+		) %>%
+		dplyr::filter(n > min_data_points)
 }

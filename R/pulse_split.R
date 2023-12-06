@@ -18,9 +18,11 @@
 #' @param window_shift_secs A single numeric value indicating by how much each subsequent window is shifted from the preceding one (in seconds).
 #' @param min_data_points A single numeric value, expressed as a ratio `[0, 1]`, used as a threshold to discard windows where data is missing (e.g., if the sampling frequency is `20` and `window_width_secs = 30`, each window should include `600` data points, and so if `min_data_points = 0.8`, windows with less than `600 * 0.8 = 480` data points will be rejected).
 #'
-#' @seealso [progressr::handlers()], [future::plan()]
-#'
-#' [pulse_read()], [pulse_optimize()], [pulse_heart()], [PULSE()]
+#' @seealso
+#'  * check [progressr::handlers()] to customize the reporting of progress
+#'  * check [future::plan()] to optimize parallel processing
+#'  * [pulse_read()], [pulse_optimize()], [pulse_heart()] are the other functions needed for the complete PULSE processing workflow
+#'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once
 #'
 #' @section Details:
 #' `pulse_split()` takes the output from a call to `pulse_read()` and splits data across user-defined time windows.
