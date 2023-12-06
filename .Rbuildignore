@@ -1,3 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^dev_code\.R$
+^LICENSE\.md$
+^README\.Rmd$

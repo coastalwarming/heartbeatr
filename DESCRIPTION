@@ -1,11 +1,37 @@
 Package: heartbeatr
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: A Workflow to Process Data Collected with PULSE Systems (Electicblue.eu)
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Rui", "Seabra", , "ptruimar@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-0240-3992")),
+    person("Fernando", "Lima", , "fplima@gmail.com", role = c("aut"),
+           comment = c(ORCID = "0000-0000-0000-0000"))
+           )
+Description: Given one or multiple paths to files produced by a PULSE multi-channel 
+    system (electricblue.eu/pulse) from a single experiment:
+    [1] check pulse files for inconsistencies and read/merge all data,
+    [2] split across time windows,
+    [3] interpolate and smooth to optimize the raw data,
+    [4] compute the heart rate frequency for each channel/window.
+    Heart rate frequency is calculated using the XXXX algorithm.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports: 
+    cli,
+    dplyr,
+    future,
+    future.apply,
+    ggplot2,
+    lubridate,
+    magrittr,
+    progressr,
+    purrr,
+    readr,
+    stringr,
+    tibble,
+    tidyr

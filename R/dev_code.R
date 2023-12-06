@@ -2,13 +2,29 @@ load_all()
 check()
 document()
 
-use_package("ggplot2")
-
 # install.packages("roxygen2")
 
 usethis::use_build_ignore("dev_code.R")
+use_git()
+use_mit_license()
+use_readme_rmd()
 
+use_testthat()
+use_test("function")
 
+use_package("cli")
+use_package("dplyr")
+use_package("future")
+use_package("future.apply")
+use_package("ggplot2")
+use_package("lubridate")
+use_package("magrittr")
+use_package("progressr")
+use_package("purrr")
+use_package("readr")
+use_package("stringr")
+use_package("tibble")
+use_package("tidyr")
 
 # use_git_config(user.name = "ruiseabra", user.email = "ruisea@gmail.com")
 # use_git_config(user.name = "coastalwarming", user.email = "coastalwarming@gmail.com")
