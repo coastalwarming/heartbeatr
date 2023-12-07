@@ -114,7 +114,7 @@ future::plan() # confirm that the current future plan is set to the original val
 \itemize{
 \item check \code{\link[progressr:handlers]{progressr::handlers()}} to customize the reporting of progress
 \item check \code{\link[future:plan]{future::plan()}} to optimize parallel processing
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}} are the other functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_optimize]{pulse_optimize()}} and \code{\link[=pulse_heart]{pulse_heart()}} are the other functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
 }
 }

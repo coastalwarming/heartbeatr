@@ -44,7 +44,9 @@ is.pulse.multi <- function(path) {
 #' @return The full path to one or more example files, or the filenames of all example files available.
 #' @export
 #'
-#' @seealso [pulse_read()], [pulse_split()], [pulse_optimize()], [pulse_heart()]
+#' @seealso
+#'  * [pulse_read()] can be used to read data from the example files
+#'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once, and it can be called to read and process the example files
 #'
 #' @examples
 #' # Get the filenames of all example files
@@ -93,7 +95,10 @@ pulse_example <- function(pattern = NULL) {
 #'
 #' @export
 #'
-#' @seealso [pulse_heart()]
+#' @seealso
+#'  * [pulse_heart()] is the function that generates the input for `pulse_normalize`
+#'  * [pulse_plot_all()] can be called to visualize the output from `pulse_normalize`
+#'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to `pulse_normalize`
 #'
 #' @examples
 #' # Begin prepare data ----
@@ -166,7 +171,10 @@ pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
 #'
 #' @export
 #'
-#' @seealso [PULSE()], [pulse_heart()], [pulse_plot_all()]
+#' @seealso
+#'  * [pulse_heart()] is the function that generates the input for `pulse_summarise`
+#'  * [pulse_plot_all()] can be called to visualize the output from `pulse_summarise`
+#'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to `pulse_summarise`
 #'
 #' @examples
 #' # Begin prepare data ----

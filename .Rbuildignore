@@ -3,3 +3,4 @@
 ^dev_code\.R$
 ^LICENSE\.md$
 ^README\.Rmd$
+^data-raw$

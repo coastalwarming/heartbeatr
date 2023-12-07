@@ -58,5 +58,9 @@ rbind(
 )
 }
 \seealso{
-\code{\link[=pulse_heart]{pulse_heart()}}
+\itemize{
+\item \code{\link[=pulse_heart]{pulse_heart()}} is the function that generates the input for \code{pulse_normalize}
+\item \code{\link[=pulse_plot_all]{pulse_plot_all()}} can be called to visualize the output from \code{pulse_normalize}
+\item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to \code{pulse_normalize}
+}
 }

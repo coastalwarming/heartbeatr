@@ -78,5 +78,9 @@ pulse_plot_all(pulse_summarise(heart_rates, span_mins = 2, min_data_points = 0))
 pulse_plot_all(pulse_summarise(heart_rates, span_mins = 5), smooth = FALSE)
 }
 \seealso{
-\code{\link[=PULSE]{PULSE()}}, \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_plot_all]{pulse_plot_all()}}
+\itemize{
+\item \code{\link[=pulse_heart]{pulse_heart()}} is the function that generates the input for \code{pulse_summarise}
+\item \code{\link[=pulse_plot_all]{pulse_plot_all()}} can be called to visualize the output from \code{pulse_summarise}
+\item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to \code{pulse_summarise}
+}
 }

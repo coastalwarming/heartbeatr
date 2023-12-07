@@ -21,7 +21,7 @@
 #' @seealso
 #'  * check [progressr::handlers()] to customize the reporting of progress
 #'  * check [future::plan()] to optimize parallel processing
-#'  * [pulse_read()], [pulse_optimize()], [pulse_heart()] are the other functions needed for the complete PULSE processing workflow
+#'  * [pulse_read()], [pulse_optimize()] and [pulse_heart()] are the other functions needed for the complete PULSE processing workflow
 #'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once
 #'
 #' @section Details:

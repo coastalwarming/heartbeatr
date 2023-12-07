@@ -29,5 +29,8 @@ pulse_example("RAW_or")
 pulse_example(c("RAW_or", "not_a_"))
 }
 \seealso{
-\code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}}
+\itemize{
+\item \code{\link[=pulse_read]{pulse_read()}} can be used to read data from the example files
+\item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once, and it can be called to read and process the example files
+}
 }
