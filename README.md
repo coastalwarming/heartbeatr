@@ -82,6 +82,28 @@ heart_rates
 #> # ℹ 85 more rows
 ```
 
+You can easily use parallel computing with **heartbeatr** - just
+configure your R session properly **BEFORE** applying the PULSE
+workflow:
+
+``` r
+# this shows how your session is currently configured 
+#   (typically defaults to "sequential", i.e., not parallelized)
+future::plan()
+#> sequential:
+#> - args: function (..., envir = parent.frame())
+#> - tweaked: FALSE
+#> - call: NULL
+
+# to make use of parallel computing (highly recommended)
+future::plan("multisession")
+future::plan()
+#> multisession:
+#> - args: function (..., workers = availableCores(), lazy = FALSE, rscript_libs = .libPaths(), envir = parent.frame())
+#> - tweaked: FALSE
+#> - call: future::plan("multisession")
+```
+
 The raw data underlying the heart rate frequency estimate (hz) can be
 inspected:
 

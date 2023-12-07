@@ -75,6 +75,18 @@ Once processed, PULSE data is stored as a tibble with a heart rate frequency val
 heart_rates
 ```
 
+You can easily use parallel computing with **heartbeatr** - just configure your R session properly **BEFORE** applying the PULSE workflow:
+
+```{r parallel}
+# this shows how your session is currently configured 
+#   (typically defaults to "sequential", i.e., not parallelized)
+future::plan()
+
+# to make use of parallel computing (highly recommended)
+future::plan("multisession")
+future::plan()
+```
+
 The raw data underlying the heart rate frequency estimate (hz) can be inspected:
 
 ```{r plot1}
