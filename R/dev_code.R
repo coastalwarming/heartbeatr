@@ -24,6 +24,9 @@ if (FALSE) {
 	### generate a readme file for GITHUB
 	use_readme_rmd()
 
+	### update the readme
+	devtools::build_readme()
+
 	### declare use of tests
 	use_testthat()
 	use_test("pulse_read")

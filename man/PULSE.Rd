@@ -12,7 +12,8 @@ PULSE(
   min_data_points,
   target_freq = 40,
   bandwidth = 0.2,
-  with_progress = NULL
+  with_progress = NULL,
+  msg = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ PULSE(
 \item{bandwidth}{A numeric value expressing the bandwidth. If equal to \code{0} (zero) no smoothing is applied. Ideally kept low (defaults to \code{0.2}) so that only very high frequency noise is removed, but can be pushed up all the way to \code{1} or above (especially when the heartbeat rate is expected to be slow, as is typical of oysters, but double check the resulting data). Type \code{?ksmooth} for additional info.}
 
 \item{with_progress}{One of \code{TRUE}, \code{FALSE} or \code{NULL} (default) to choose whether to show progress bars or not (based on the \code{progressr} package). \code{TRUE} prints a \code{cli}-style progress bar; \code{FALSE} disables progress bars altogether; if set to \code{NULL}, the behavior is controlled by the user from outside this function (by setting the desired \code{handlers()}; in addition, setting \code{handlers(global = TRUE)} ensures the same behavior is used across the entire session).}
+
+\item{msg}{A logical to decide if non-crucial messages (but not errors) are shown (defaults to \code{TRUE})}
 }
 \value{
 A tibble with nrows = (number of channels) * (number of windows in \code{pulse_data_split}) and 6 columns:

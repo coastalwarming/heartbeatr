@@ -4,7 +4,7 @@
 \name{heartbeatr-package}
 \alias{heartbeatr}
 \alias{heartbeatr-package}
-\title{heartbeatr: A Workflow to Process Data Collected with PULSE Systems (Electicblue.eu)}
+\title{heartbeatr: A Workflow to Process Data Collected with PULSE Systems (Electricblue.eu)}
 \description{
 Given one or multiple paths to files produced by a PULSE multi-channel system (electricblue.eu/pulse) from a single experiment: [1] check pulse files for inconsistencies and read/merge all data, [2] split across time windows, [3] interpolate and smooth to optimize the raw data, [4] compute the heart rate frequency for each channel/window. Heart rate frequency is calculated using the XXXX algorithm.
 }

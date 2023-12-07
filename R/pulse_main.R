@@ -20,6 +20,7 @@
 #' @inheritParams pulse_split
 #' @inheritParams pulse_optimize
 #' @inheritParams pulse_heart
+#' @param msg A logical to decide if non-crucial messages (but not errors) are shown (defaults to `TRUE`)
 #'
 #' @param discard_channels A string with the names of channels to be discarded from the analysis. The **exact** names must be provided (case sensitive). Discarding unused channels speeds up the workflow!
 #'
@@ -75,7 +76,7 @@
 #'   bandwidth   = 0.2,
 #'   with_progress = TRUE
 #'   )
-PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shift_secs, min_data_points, target_freq = 40, bandwidth = 0.2, with_progress = NULL) {
+PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shift_secs, min_data_points, target_freq = 40, bandwidth = 0.2, with_progress = NULL, msg = TRUE) {
 	## CHECKS INITIATED ## ------------------- ##
 
 	# pulse_read
@@ -108,18 +109,21 @@ PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shif
 	current_strategy <- future::plan() %>%
 		class() %>%
 		magrittr::extract(2)
-	if (current_strategy == "sequential") {
-		message("  --> [i] parallel computing not engaged")
-		message("  --> [i] if too slow, type ?PULSE for help on how to use parallel computing\n")
-	} else {
-		message("  --> [i] parallel computing engaged")
-		message(stringr::str_c("  --> [i] current future strategy: ", current_strategy, "\n"))
+	if (msg) {
+		if (current_strategy == "sequential") {
+			message("  --> [i] parallel computing not engaged")
+			message("  --> [i] if too slow, type ?PULSE for help on how to use parallel computing\n")
+		} else {
+			message("  --> [i] parallel computing engaged")
+			message(stringr::str_c("  --> [i] current future strategy: ", current_strategy, "\n"))
+		}
 	}
 
 	# read data
 	pulse_data <- pulse_read(
 		paths,
-		with_progress = with_progress
+		with_progress = with_progress,
+		msg = FALSE
 	)
 
 	# discard unused/unwanted channels
