@@ -108,3 +108,4 @@ The number of data points can be reduced:
 heart_rates_binned <- pulse_summarise(heart_rates, fun = mean, span_mins = 3, min_data_points = 0.8)
 pulse_plot_all(heart_rates_binned)
 ```
+That's it. Have fun!
