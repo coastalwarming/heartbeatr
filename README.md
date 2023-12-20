@@ -62,8 +62,11 @@ heart_rates <- PULSE(
   )
 ```
 
-Once processed, PULSE data is stored as a tibble with a heart rate
-frequency value for each channel/split window.
+Once processed, PULSE data is stored as a tibble with an average heart
+rate frequency for each channel/split window. The time is relative to
+the mid-point of the window. Frequencies are expressed in Hz and have
+the number of identified beats and standard deviations associated, which
+can be used to classify or filter the data (see below).
 
 ``` r
 heart_rates
@@ -161,12 +164,12 @@ higher variability which may be indicative of lower quality.
 # arbritary threshold
 max_sd <- 0.04
 
-#make a copy of the object and delete high-variability points
+# make a copy of the object and delete high-variability points
 thinned_xts_limpet1 <- xts_limpet1
 thinned_xts_limpet1[HR_limpet1$sd >= max_sd,] <- NA
 
 #plot
-plot(thinned_xts_limpet1$BPM, lty=1, col=1, lwd=2, ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute",ty="p")
+plot(thinned_xts_limpet1$BPM, lty=1, col=1, lwd=2, ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute")
 points(thinned_xts_limpet1$BPM)
 ```
 
