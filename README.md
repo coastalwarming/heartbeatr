@@ -19,7 +19,7 @@ You can install the development version of **heartbeatr** from
 devtools::install_github("coastalwarming/heartbeatr")
 ```
 
-## Example
+## Examples
 
 List PULSE files to be read:
 
@@ -150,3 +150,22 @@ plot(xts_limpet1, lty=c(1,2,2), col=c(1,2,2), lwd=c(2,1,1), ylim=c(25,85), main 
 ```
 
 <img src="man/figures/README-select one channel and plot-1.png" width="100%" />
+
+Removing data points exceeding an arbitrary standard deviation. This is
+useful when dealing with long series of continuous data which were
+already collected with the intention to discard portions of data with
+higher variability which may be indicative of lower quality.
+
+``` r
+# arbritary threshold
+max_sd <- 0.04
+
+#make a copy of the object and delete high-variability points
+thinned_xts_limpet1 <- xts_limpet1
+thinned_xts_limpet1[HR_limpet1$sd >= 0.04,] <- NA
+
+#plot
+plot(thinned_xts_limpet1$BPM, lty=1, col=1, lwd=2, ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute"); points(thinned_xts_limpet1$BPM)
+```
+
+<img src="man/figures/README-thinning data and plotting-1.png" width="100%" /><img src="man/figures/README-thinning data and plotting-2.png" width="100%" />

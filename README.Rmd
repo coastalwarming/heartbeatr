@@ -29,7 +29,7 @@ You can install the development version of **heartbeatr** from [GitHub](https://
 devtools::install_github("coastalwarming/heartbeatr")
 ```
 
-## Example
+## Examples
 
 List PULSE files to be read:
 
@@ -122,4 +122,18 @@ colnames(BPM_limpet1) <- c("BPM", "CI_lower", "CI_upper")
 suppressMessages(library(xts))
 xts_limpet1 <- xts(BPM_limpet1, HR_limpet1$time)
 plot(xts_limpet1, lty=c(1,2,2), col=c(1,2,2), lwd=c(2,1,1), ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute")
+```
+
+Removing data points exceeding an arbitrary standard deviation. This is useful when dealing with long series of continuous data which were already collected with the intention to discard portions of data with higher variability which may be indicative of lower quality.
+
+```{r thinning data and plotting}
+# arbritary threshold
+max_sd <- 0.04
+
+#make a copy of the object and delete high-variability points
+thinned_xts_limpet1 <- xts_limpet1
+thinned_xts_limpet1[HR_limpet1$sd >= 0.04,] <- NA
+
+#plot
+plot(thinned_xts_limpet1$BPM, lty=1, col=1, lwd=2, ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute"); points(thinned_xts_limpet1$BPM)
 ```
