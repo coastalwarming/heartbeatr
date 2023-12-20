@@ -134,4 +134,5 @@ heart_rates_binned <- pulse_summarise(heart_rates, fun = mean, span_mins = 3, mi
 pulse_plot_all(heart_rates_binned)
 ```
 
-<img src="man/figures/README-plot3-1.png" width="100%" />
+<img src="man/figures/README-plot3-1.png" width="100%" /> That’s it.
+Have fun!
