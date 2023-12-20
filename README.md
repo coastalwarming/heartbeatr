@@ -6,7 +6,8 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-A simple workflow to process data collected with PULSE systems
+An R package for processing data and automatically assessing cardiac
+frequency, specifically designed for use with PULSE systems
 (www.electricblue.eu/pulse).
 
 ## Installation
