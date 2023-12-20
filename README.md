@@ -29,8 +29,8 @@ library(heartbeatr)
 # ...here we use the package's example data
 paths <- pulse_example("RAW_original_")
 paths
-#> [1] "/Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/library/heartbeatr/extdata/RAW_original_20221229_1350.CSV"
-#> [2] "/Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/library/heartbeatr/extdata/RAW_original_20221229_1400.CSV"
+#> [1] "/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/heartbeatr/extdata/RAW_original_20221229_1350.CSV"
+#> [2] "/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/heartbeatr/extdata/RAW_original_20221229_1400.CSV"
 ```
 
 There are two ways to read and process those data:
@@ -108,16 +108,13 @@ The raw data underlying the heart rate frequency estimate (hz) can be
 inspected:
 
 ``` r
+# the 5th split window for channel "limpet_1" (the target --> i = 5) is shown in the center
+# - 2 more windows are shown before and after the target (hence, range =2)
+# - red dots show where the algorithm detected a peak
 pulse_plot_raw(heart_rates, ID = "limpet_1", i = 5, range = 2) 
 ```
 
 <img src="man/figures/README-plot1-1.png" width="100%" />
-
-``` r
-# the 5th split window for channel "limpet_1" (the target --> i = 5) is shown in the center
-# - 2 more windows are shown before and after the target
-# - red dots show where the algorithm detected a peak
-```
 
 A quick overview of the result of the analysis:
 
@@ -134,5 +131,22 @@ heart_rates_binned <- pulse_summarise(heart_rates, fun = mean, span_mins = 3, mi
 pulse_plot_all(heart_rates_binned)
 ```
 
-<img src="man/figures/README-plot3-1.png" width="100%" /> That’s it.
-Have fun!
+<img src="man/figures/README-plot3-1.png" width="100%" />
+
+A more detailed view of channel 1, named “limpet_1”
+
+``` r
+# selecting channel 1
+HR_limpet1 <- dplyr::filter(heart_rates, id=="limpet_1")
+
+# gathering heart beat data
+BPM_limpet1 <- cbind(HR_limpet1$hz*60, HR_limpet1$hz*60 - HR_limpet1$sd*1.96*60, HR_limpet1$hz*60 + HR_limpet1$sd*1.96*60)
+colnames(BPM_limpet1) <- c("BPM", "CI_lower", "CI_upper")
+
+# plot the time series for channel 1 with heart frequency expressed as beats per minute (BPM) +/- 95% confidence intervals
+suppressMessages(library(xts))
+xts_limpet1 <- xts(BPM_limpet1, HR_limpet1$time)
+plot(xts_limpet1, lty=c(1,2,2), col=c(1,2,2), lwd=c(2,1,1), ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute")
+```
+
+<img src="man/figures/README-select one channel and plot-1.png" width="100%" />

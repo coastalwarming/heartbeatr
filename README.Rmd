@@ -90,10 +90,10 @@ future::plan()
 The raw data underlying the heart rate frequency estimate (hz) can be inspected:
 
 ```{r plot1}
-pulse_plot_raw(heart_rates, ID = "limpet_1", i = 5, range = 2) 
 # the 5th split window for channel "limpet_1" (the target --> i = 5) is shown in the center
-# - 2 more windows are shown before and after the target
+# - 2 more windows are shown before and after the target (hence, range =2)
 # - red dots show where the algorithm detected a peak
+pulse_plot_raw(heart_rates, ID = "limpet_1", i = 5, range = 2) 
 ```
 
 A quick overview of the result of the analysis:
@@ -108,4 +108,18 @@ The number of data points can be reduced:
 heart_rates_binned <- pulse_summarise(heart_rates, fun = mean, span_mins = 3, min_data_points = 0.8)
 pulse_plot_all(heart_rates_binned)
 ```
-That's it. Have fun!
+
+A more detailed view of channel 1, named "limpet_1"
+```{r select one channel and plot}
+# selecting channel 1
+HR_limpet1 <- dplyr::filter(heart_rates, id=="limpet_1")
+
+# gathering heart beat data
+BPM_limpet1 <- cbind(HR_limpet1$hz*60, HR_limpet1$hz*60 - HR_limpet1$sd*1.96*60, HR_limpet1$hz*60 + HR_limpet1$sd*1.96*60)
+colnames(BPM_limpet1) <- c("BPM", "CI_lower", "CI_upper")
+
+# plot the time series for channel 1 with heart frequency expressed as beats per minute (BPM) +/- 95% confidence intervals
+suppressMessages(library(xts))
+xts_limpet1 <- xts(BPM_limpet1, HR_limpet1$time)
+plot(xts_limpet1, lty=c(1,2,2), col=c(1,2,2), lwd=c(2,1,1), ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute")
+```
