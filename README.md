@@ -162,10 +162,11 @@ max_sd <- 0.04
 
 #make a copy of the object and delete high-variability points
 thinned_xts_limpet1 <- xts_limpet1
-thinned_xts_limpet1[HR_limpet1$sd >= 0.04,] <- NA
+thinned_xts_limpet1[HR_limpet1$sd >= max_sd,] <- NA
 
 #plot
-plot(thinned_xts_limpet1$BPM, lty=1, col=1, lwd=2, ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute"); points(thinned_xts_limpet1$BPM)
+plot(thinned_xts_limpet1$BPM, lty=1, col=1, lwd=2, ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute",ty="p")
+points(thinned_xts_limpet1$BPM)
 ```
 
-<img src="man/figures/README-thinning data and plotting-1.png" width="100%" /><img src="man/figures/README-thinning data and plotting-2.png" width="100%" />
+<img src="man/figures/README-thinning data and plotting-1.png" width="100%" />
