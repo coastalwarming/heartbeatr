@@ -93,6 +93,26 @@ heart_rates
 #> # ℹ 85 more rows
 ```
 
+The raw data corresponding to each split window is still available.
+
+``` r
+heart_rates$data[[1]]
+#> # A tibble: 1,200 × 3
+#>    time                  val peak 
+#>    <dttm>              <dbl> <lgl>
+#>  1 2022-12-29 13:51:00 1093. FALSE
+#>  2 2022-12-29 13:51:00 1093. FALSE
+#>  3 2022-12-29 13:51:00 1094. FALSE
+#>  4 2022-12-29 13:51:00 1098. FALSE
+#>  5 2022-12-29 13:51:00 1104. FALSE
+#>  6 2022-12-29 13:51:00 1114. FALSE
+#>  7 2022-12-29 13:51:00 1128. FALSE
+#>  8 2022-12-29 13:51:00 1145. FALSE
+#>  9 2022-12-29 13:51:00 1163. FALSE
+#> 10 2022-12-29 13:51:00 1180. FALSE
+#> # ℹ 1,190 more rows
+```
+
 You can easily use parallel computing with **heartbeatr** - just
 configure your R session properly **BEFORE** applying the PULSE
 workflow:
@@ -119,42 +139,36 @@ The raw data underlying the heart rate frequency estimate (hz) can be
 inspected:
 
 ``` r
-pulse_plot_raw(heart_rates, ID = "limpet_1", target_time = "2022-12-29 13:55", range = 2) 
+# the split window for channel "limpet_1" closest to the target date 
+#   provided with target_time is shown in the center:
+#   - 2 more windows are shown before/after the target (because range was set to 2)
+#   - red dots show where the algorithm detected a peak
+pulse_plot_raw(heart_rates, 
+               ID = "limpet_1", 
+               target_time = "2022-12-29 13:55", 
+               range = 2)
 ```
 
 <img src="man/figures/README-plot1-1.png" width="100%" />
-
-``` r
-# the split window for channel "limpet_1" closest to the target date 
-#   provided with target_time is shown in the center:
-#   - 2 more windows are shown before and after the target (because range had been set to 2)
-#   - red dots show where the algorithm detected a peak
-```
 
 Beware of bad data - estimates of heart rate are always produced,
 regardless of the quality of the underlying data, but they may not be
 usable at all if the quality of that data is too poor.
 
 ``` r
-pulse_plot_raw(heart_rates, ID = "limpet_2", target_time = "2022-12-29 13:55", range = 2) 
+# the channel "limpet_2" contains poor-quality data, where visual inspection 
+# clearly shows that the heart rate wasn't captured in the signal (lack of 
+# periodicity and inconsistent intervals between the peaks identified)
+pulse_plot_raw(heart_rates, 
+               ID = "limpet_2", 
+               target_time = "2022-12-29 13:55", 
+               range = 2) 
 ```
 
 <img src="man/figures/README-plot_bad-1.png" width="100%" />
 
-``` r
-# the channel "limpet_2" contains poor-quality data, where visual inspection clearly shows
-# that the heart rate wasn't captured in the signal (lack of periodicity, inconsistent
-# intervals between identified peaks)
-```
-
 A quick overview of the result of the analysis of the data from all
 channels:
-
-``` r
-pulse_plot(heart_rates)
-```
-
-<img src="man/figures/README-plot2-1.png" width="100%" />
 
 ``` r
 # note that one could easily overlook the wider confidence intervals in all channels 
@@ -162,7 +176,10 @@ pulse_plot(heart_rates)
 # pulse-processing algorithm - when in fact we have already determined that data 
 # recorded in the channel "limpet_2" is too poor (the same is true for the other 
 # channels as well).
+pulse_plot(heart_rates)
 ```
+
+<img src="man/figures/README-plot2-1.png" width="100%" />
 
 The number of data points can be reduced:
 
@@ -180,7 +197,10 @@ A more detailed view of the channel “limpet_1”, showing the Confidence
 Interval for each estimate of heart rate.
 
 ``` r
-pulse_plot(heart_rates, ID = "limpet_1", smooth = FALSE, bpm = TRUE)
+pulse_plot(heart_rates, 
+           ID = "limpet_1", 
+           smooth = FALSE, 
+           bpm = TRUE)
 ```
 
 <img src="man/figures/README-one_channel-1.png" width="100%" />
@@ -191,10 +211,14 @@ which were already collected with the intention to discard portions of
 data with higher variability which may be indicative of lower quality.
 
 ``` r
-# arbritary threshold
+# arbitrary threshold
 max_sd <- 0.04
+filtered_heart_rates <- dplyr::filter(heart_rates, sd <= max_sd)
 
-pulse_plot(dplyr::filter(heart_rates, sd <= max_sd), ID = "limpet_1", smooth = FALSE, bpm = TRUE)
+pulse_plot(filtered_heart_rates, 
+           ID = "limpet_1", 
+           smooth = FALSE, 
+           bpm = TRUE)
 ```
 
 <img src="man/figures/README-thinning-1.png" width="100%" />

@@ -37,7 +37,7 @@ heart_rates <- PULSE(
   window_width_secs = 30,
   window_shift_secs = 60,
   min_data_points   = 0.8,
-  target_freq = 40,
+  interpolation_freq = 40,
   bandwidth   = 0.2,
   with_progress = TRUE
   )

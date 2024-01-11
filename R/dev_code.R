@@ -86,5 +86,5 @@ if (FALSE) {
 	#>	Your identification has been saved in /Users/ruiseabra/.ssh/id_rsa
 	#> Your public key has been saved in /Users/ruiseabra/.ssh/id_rsa.pub
 	# cat /Users/ruiseabra/.ssh/id_rsa
-	# cat /Users/ruiseabra/.ssh/id_rsa.pub <-- copy this one and paste on GITHUB
+	# cat /Users/ruiseabra/.ssh/id_rsa.pub <-- copy this one and paste on GITHUB (user > settings > SSH and GPG keys > SSH keys)
 }

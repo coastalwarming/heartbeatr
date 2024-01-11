@@ -185,7 +185,7 @@ pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
 #'   window_width_secs = 30,
 #'   window_shift_secs = 60,
 #'   min_data_points   = 0.8,
-#'   target_freq = 40,
+#'   interpolation_freq = 40,
 #'   bandwidth   = 0.2,
 #'   with_progress = TRUE
 #'   )

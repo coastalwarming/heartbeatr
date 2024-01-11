@@ -72,11 +72,11 @@
 #'   window_width_secs = 30,
 #'   window_shift_secs = 60,
 #'   min_data_points   = 0.8,
-#'   target_freq = 40,
+#'   interpolation_freq = 40,
 #'   bandwidth   = 0.2,
 #'   with_progress = TRUE
 #'   )
-PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shift_secs, min_data_points, target_freq = 40, bandwidth = 0.2, with_progress = NULL, msg = TRUE) {
+PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shift_secs, min_data_points, interpolation_freq = 40, bandwidth = 0.2, with_progress = NULL, msg = TRUE) {
 	## CHECKS INITIATED ## ------------------- ##
 
 	# pulse_read
@@ -94,9 +94,9 @@ PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shif
 	stopifnot(dplyr::between(min_data_points, 0, 1))
 
 	# pulse_optimize
-	stopifnot(is.numeric(target_freq))
-	stopifnot(length(target_freq) == 1)
-	if (!(target_freq == 0 | target_freq >= 40)) stop("\n  --> [x] target_freq must be zero or a value >= 40")
+	stopifnot(is.numeric(interpolation_freq))
+	stopifnot(length(interpolation_freq) == 1)
+	if (!(interpolation_freq == 0 | interpolation_freq >= 40)) stop("\n  --> [x] interpolation_freq must be zero or a value >= 40")
 	stopifnot(is.numeric(bandwidth))
 	stopifnot(length(bandwidth) == 1)
 
@@ -150,7 +150,7 @@ PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shif
 	# optimize data
 	pulse_data_split <- pulse_optimize(
 		pulse_data_split,
-		target_freq = target_freq,
+		interpolation_freq = interpolation_freq,
 		bandwidth = bandwidth
 	)
 

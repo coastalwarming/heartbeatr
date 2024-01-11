@@ -4,20 +4,20 @@
 \alias{pulse_interpolate}
 \title{Increase the number of data points in PULSE data through interpolation}
 \usage{
-pulse_interpolate(split_window, target_freq = 40)
+pulse_interpolate(split_window, interpolation_freq = 40)
 }
 \arguments{
 \item{split_window}{One element of \code{pulse_data_split} (\code{pulse_data_split} is the output of \code{pulse_split()}).}
 
-\item{target_freq}{A numeric value expressing the frequency (in Hz) to which PULSE data should be interpolated. Can be set to \code{0} (zero) or any value equal or greater than \code{40} (the default). If set to zero, no interpolation is performed.}
+\item{interpolation_freq}{A numeric value expressing the frequency (in Hz) to which PULSE data should be interpolated. Can be set to \code{0} (zero) or any value equal or greater than \code{40} (the default). If set to zero, no interpolation is performed.}
 }
 \value{
-The same PULSE tibble supplied in \code{split_window}, with the standard 2 or more columns (time + one or more channels), but now with data interpolated to \code{target_freq} (i.e., with more data points)
+The same PULSE tibble supplied in \code{split_window}, with the standard 2 or more columns (time + one or more channels), but now with data interpolated to \code{interpolation_freq} (i.e., with more data points)
 }
 \description{
 The performance of the algorithm employed in the downstream function \code{pulse_heart()} for the detection of heart beat wave crests depends significantly on there being a sufficient number of data points around each crest. \code{pulse_interpolate()} reshapes the data non-destructively and improves the likelihood of \code{pulse_heart()} successfully estimating the inherent heartbeat rates.
 \itemize{
-\item \code{INTERPOLATION} is highly recommended because tests on real data have shown that a frequency of at least 40 Hz is crucial to ensure wave crests can be discerned even when the underlying heart beat rate is high (i.e., at rates above 2-3 Hz). Since the PULSE multi-channel system is not designed to capture data at such high rates (partially because it would generate files unnecessarily large), \code{pulse_interpolate()} is used instead to artificially increase the temporal resolution of the data by linearly interpolating to the target frequency. It is important to note that this process DOES NOT ALTER the shape of the heart beat wave, it just introduces intermediary data points. Also, the only downside to using very high values for \code{target_freq} is the proportional increase in computing time and size of the outputs together with minimal improvements in the performance of \code{pulse_heart()} - but no artefacts are expected.
+\item \code{INTERPOLATION} is highly recommended because tests on real data have shown that a frequency of at least 40 Hz is crucial to ensure wave crests can be discerned even when the underlying heart beat rate is high (i.e., at rates above 2-3 Hz). Since the PULSE multi-channel system is not designed to capture data at such high rates (partially because it would generate files unnecessarily large), \code{pulse_interpolate()} is used instead to artificially increase the temporal resolution of the data by linearly interpolating to the target frequency. It is important to note that this process DOES NOT ALTER the shape of the heart beat wave, it just introduces intermediary data points. Also, the only downside to using very high values for \code{interpolation_freq} is the proportional increase in computing time and size of the outputs together with minimal improvements in the performance of \code{pulse_heart()} - but no artefacts are expected.
 }
 }
 \examples{

@@ -10,7 +10,7 @@ PULSE(
   window_width_secs,
   window_shift_secs,
   min_data_points,
-  target_freq = 40,
+  interpolation_freq = 40,
   bandwidth = 0.2,
   with_progress = NULL,
   msg = TRUE
@@ -27,7 +27,7 @@ PULSE(
 
 \item{min_data_points}{A single numeric value, expressed as a ratio \verb{[0, 1]}, used as a threshold to discard windows where data is missing (e.g., if the sampling frequency is \code{20} and \code{window_width_secs = 30}, each window should include \code{600} data points, and so if \code{min_data_points = 0.8}, windows with less than \code{600 * 0.8 = 480} data points will be rejected).}
 
-\item{target_freq}{A numeric value expressing the frequency (in Hz) to which PULSE data should be interpolated. Can be set to \code{0} (zero) or any value equal or greater than \code{40} (the default). If set to zero, no interpolation is performed.}
+\item{interpolation_freq}{A numeric value expressing the frequency (in Hz) to which PULSE data should be interpolated. Can be set to \code{0} (zero) or any value equal or greater than \code{40} (the default). If set to zero, no interpolation is performed.}
 
 \item{bandwidth}{A numeric value expressing the bandwidth. If equal to \code{0} (zero) no smoothing is applied. Ideally kept low (defaults to \code{0.2}) so that only very high frequency noise is removed, but can be pushed up all the way to \code{1} or above (especially when the heartbeat rate is expected to be slow, as is typical of oysters, but double check the resulting data). Type \code{?ksmooth} for additional info.}
 
@@ -99,7 +99,7 @@ PULSE(
   window_width_secs = 30,
   window_shift_secs = 60,
   min_data_points   = 0.8,
-  target_freq = 40,
+  interpolation_freq = 40,
   bandwidth   = 0.2,
   with_progress = TRUE
   )
