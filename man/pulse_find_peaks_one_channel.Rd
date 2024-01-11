@@ -10,13 +10,16 @@ pulse_find_peaks_one_channel(split_window_one_channel)
 \item{split_window_one_channel}{A tibble with PULSE data for only one channel with columns \verb{$time} and \verb{$val}}
 }
 \value{
-A one-row tibble with 5 columns:
+A one-row tibble with 8 columns:
 \itemize{
 \item \code{time}, time at the center of split_window_one_channel$time
 \item \code{t_pks}, timestamps of each wave peak identified
-\item \code{n}, number of wave peaks identified
-\item \code{hz}, heartbeat rate estimate (in Hz)
-\item \code{sd}, standard deviation of the intervals between wave peaks
+\item \code{n},   number of wave peaks identified
+\item \code{hz},  heartbeat rate estimate (in Hz)
+\item \code{sd},  standard deviation of the intervals between wave peaks
+\item \code{ci},  confidence interval (hz ± ci)
+\item \code{bpm}, heartbeat rate estimate (in Beats Per Minute)
+\item \code{bpm_ci}, confidence interval (bpm ± bpm_ci)
 }
 }
 \description{

@@ -30,8 +30,8 @@ library(heartbeatr)
 # ...here we use the package's example data
 paths <- pulse_example("RAW_original_")
 paths
-#> [1] "/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/heartbeatr/extdata/RAW_original_20221229_1350.CSV"
-#> [2] "/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/heartbeatr/extdata/RAW_original_20221229_1400.CSV"
+#> [1] "/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library/heartbeatr/extdata/RAW_original_20221229_1350.CSV"
+#> [2] "/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library/heartbeatr/extdata/RAW_original_20221229_1400.CSV"
 ```
 
 There are two ways to read and process those data:
@@ -46,13 +46,16 @@ pulse_data_split <- pulse_split(
    min_data_points = 0.8, 
    msg = FALSE
    )
-pulse_data_split <- pulse_optimize(pulse_data_split, target_freq = 40, bandwidth = 0.2)
+pulse_data_split <- pulse_optimize(pulse_data_split,
+                                   target_freq = 40,
+                                   bandwidth = 0.2)
 heart_rates <- pulse_heart(pulse_data_split, msg = FALSE)
 
 # or calling a single wrapper function
 heart_rates <- PULSE(
   paths,
-  discard_channels  = paste0("s", 5:10), # channels s5 to s10 are empty in the example data
+  # channels s5 to s10 are empty in the example data
+  discard_channels  = paste0("s", 5:10), 
   window_width_secs = 30,
   window_shift_secs = 60,
   min_data_points   = 0.8,
@@ -64,25 +67,29 @@ heart_rates <- PULSE(
 
 Once processed, PULSE data is stored as a tibble with an average heart
 rate frequency for each channel/split window. The time is relative to
-the mid-point of the window. Frequencies are expressed in Hz and have
-the number of identified beats and standard deviations associated, which
-can be used to classify or filter the data (see below).
+the mid-point of the window. Frequencies are expressed in Hz and BPM. In
+addition, the following information is also provided, which can be used
+to classify or filter the data: **n**, the number of identified heart
+beats, **sd**, the standard deviation of the intervals between each pair
+of consecutive peaks, **ci**, the confidence interval of the Hz estimate
+(hz ± ci), and **bpm_ci**, the confidence interval of the BPM estimate
+(bpm ± bpm_ci).
 
 ``` r
 heart_rates
-#> # A tibble: 95 × 6
-#>    id       time                data                     n    hz    sd
-#>    <fct>    <dttm>              <list>               <int> <dbl> <dbl>
-#>  1 limpet_1 2022-12-29 13:51:15 <tibble [1,200 × 3]>    24 0.789 0.032
-#>  2 limpet_1 2022-12-29 13:52:15 <tibble [1,200 × 3]>    23 0.779 0.012
-#>  3 limpet_1 2022-12-29 13:53:15 <tibble [1,200 × 3]>    24 0.781 0.022
-#>  4 limpet_1 2022-12-29 13:54:15 <tibble [1,200 × 3]>    25 0.811 0.059
-#>  5 limpet_1 2022-12-29 13:55:15 <tibble [1,200 × 3]>    25 0.817 0.011
-#>  6 limpet_1 2022-12-29 13:56:15 <tibble [1,200 × 3]>    24 0.81  0.122
-#>  7 limpet_1 2022-12-29 13:57:15 <tibble [1,200 × 3]>    26 0.848 0.05 
-#>  8 limpet_1 2022-12-29 13:58:15 <tibble [1,200 × 3]>    26 0.834 0.022
-#>  9 limpet_1 2022-12-29 13:59:15 <tibble [1,200 × 3]>    27 0.869 0.052
-#> 10 limpet_1 2022-12-29 14:00:15 <tibble [1,200 × 3]>    25 0.845 0.027
+#> # A tibble: 95 × 9
+#>    id       time                data         n    hz    sd    ci   bpm bpm_ci
+#>    <fct>    <dttm>              <list>   <int> <dbl> <dbl> <dbl> <dbl>  <dbl>
+#>  1 limpet_1 2022-12-29 13:51:15 <tibble>    24 0.789 0.045 0.088  47.4   5.28
+#>  2 limpet_1 2022-12-29 13:52:15 <tibble>    23 0.779 0.021 0.041  46.7   2.47
+#>  3 limpet_1 2022-12-29 13:53:15 <tibble>    24 0.781 0.034 0.066  46.9   3.96
+#>  4 limpet_1 2022-12-29 13:54:15 <tibble>    25 0.811 0.089 0.174  48.7  10.4 
+#>  5 limpet_1 2022-12-29 13:55:15 <tibble>    25 0.817 0.016 0.032  49.0   1.92
+#>  6 limpet_1 2022-12-29 13:56:15 <tibble>    24 0.81  0.18  0.353  48.6  21.2 
+#>  7 limpet_1 2022-12-29 13:57:15 <tibble>    26 0.848 0.069 0.135  50.9   8.13
+#>  8 limpet_1 2022-12-29 13:58:15 <tibble>    26 0.834 0.03  0.059  50.0   3.55
+#>  9 limpet_1 2022-12-29 13:59:15 <tibble>    27 0.869 0.056 0.11   52.1   6.57
+#> 10 limpet_1 2022-12-29 14:00:15 <tibble>    25 0.845 0.04  0.079  50.7   4.74
 #> # ℹ 85 more rows
 ```
 
@@ -112,65 +119,82 @@ The raw data underlying the heart rate frequency estimate (hz) can be
 inspected:
 
 ``` r
-# the 5th split window for channel "limpet_1" (the target --> i = 5) is shown in the center
-# - 2 more windows are shown before and after the target (hence, range =2)
-# - red dots show where the algorithm detected a peak
-pulse_plot_raw(heart_rates, ID = "limpet_1", i = 5, range = 2) 
+pulse_plot_raw(heart_rates, ID = "limpet_1", target_time = "2022-12-29 13:55", range = 2) 
 ```
 
 <img src="man/figures/README-plot1-1.png" width="100%" />
 
-A quick overview of the result of the analysis:
+``` r
+# the split window for channel "limpet_1" closest to the target date 
+#   provided with target_time is shown in the center:
+#   - 2 more windows are shown before and after the target (because range had been set to 2)
+#   - red dots show where the algorithm detected a peak
+```
+
+Beware of bad data - estimates of heart rate are always produced,
+regardless of the quality of the underlying data, but they may not be
+usable at all if the quality of that data is too poor.
 
 ``` r
-pulse_plot_all(heart_rates)
+pulse_plot_raw(heart_rates, ID = "limpet_2", target_time = "2022-12-29 13:55", range = 2) 
+```
+
+<img src="man/figures/README-plot_bad-1.png" width="100%" />
+
+``` r
+# the channel "limpet_2" contains poor-quality data, where visual inspection clearly shows
+# that the heart rate wasn't captured in the signal (lack of periodicity, inconsistent
+# intervals between identified peaks)
+```
+
+A quick overview of the result of the analysis of the data from all
+channels:
+
+``` r
+pulse_plot(heart_rates)
 ```
 
 <img src="man/figures/README-plot2-1.png" width="100%" />
 
+``` r
+# note that one could easily overlook the wider confidence intervals in all channels 
+# other than "limpet_1" and erroneously continue analysing the output of the 
+# pulse-processing algorithm - when in fact we have already determined that data 
+# recorded in the channel "limpet_2" is too poor (the same is true for the other 
+# channels as well).
+```
+
 The number of data points can be reduced:
 
 ``` r
-heart_rates_binned <- pulse_summarise(heart_rates, fun = mean, span_mins = 3, min_data_points = 0.8)
-pulse_plot_all(heart_rates_binned)
+heart_rates_binned <- pulse_summarise(heart_rates, 
+                                      fun = mean, 
+                                      span_mins = 3, 
+                                      min_data_points = 0.8)
+pulse_plot(heart_rates_binned)
 ```
 
 <img src="man/figures/README-plot3-1.png" width="100%" />
 
-A more detailed view of channel 1, named “limpet_1”
+A more detailed view of the channel “limpet_1”, showing the Confidence
+Interval for each estimate of heart rate.
 
 ``` r
-# selecting channel 1
-HR_limpet1 <- dplyr::filter(heart_rates, id=="limpet_1")
-
-# gathering heart beat data
-BPM_limpet1 <- cbind(HR_limpet1$hz*60, HR_limpet1$hz*60 - HR_limpet1$sd*1.96*60, HR_limpet1$hz*60 + HR_limpet1$sd*1.96*60)
-colnames(BPM_limpet1) <- c("BPM", "CI_lower", "CI_upper")
-
-# plot the time series for channel 1 with heart frequency expressed as beats per minute (BPM) +/- 95% confidence intervals
-suppressMessages(library(xts))
-xts_limpet1 <- xts(BPM_limpet1, HR_limpet1$time)
-plot(xts_limpet1, lty=c(1,2,2), col=c(1,2,2), lwd=c(2,1,1), ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute")
+pulse_plot(heart_rates, ID = "limpet_1", smooth = FALSE, bpm = TRUE)
 ```
 
-<img src="man/figures/README-select one channel and plot-1.png" width="100%" />
+<img src="man/figures/README-one_channel-1.png" width="100%" />
 
-Removing data points exceeding an arbitrary standard deviation. This is
-useful when dealing with long series of continuous data which were
-already collected with the intention to discard portions of data with
-higher variability which may be indicative of lower quality.
+Data points exceeding an arbitrary standard deviation can easily be
+removed. This is useful when dealing with long series of continuous data
+which were already collected with the intention to discard portions of
+data with higher variability which may be indicative of lower quality.
 
 ``` r
 # arbritary threshold
 max_sd <- 0.04
 
-# make a copy of the object and delete high-variability points
-thinned_xts_limpet1 <- xts_limpet1
-thinned_xts_limpet1[HR_limpet1$sd >= max_sd,] <- NA
-
-#plot
-plot(thinned_xts_limpet1$BPM, lty=1, col=1, lwd=2, ylim=c(25,85), main = "Limpet 1", ylab = "Beats per minute")
-points(thinned_xts_limpet1$BPM)
+pulse_plot(dplyr::filter(heart_rates, sd <= max_sd), ID = "limpet_1", smooth = FALSE, bpm = TRUE)
 ```
 
-<img src="man/figures/README-thinning data and plotting-1.png" width="100%" />
+<img src="man/figures/README-thinning-1.png" width="100%" />

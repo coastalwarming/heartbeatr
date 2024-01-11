@@ -6,12 +6,15 @@
 #' @param split_window_one_channel A tibble with PULSE data for only one channel with columns `$time` and `$val`
 #'
 #' @return
-#' A one-row tibble with 5 columns:
+#' A one-row tibble with 8 columns:
 #' * `time`, time at the center of split_window_one_channel$time
 #' * `t_pks`, timestamps of each wave peak identified
-#' * `n`, number of wave peaks identified
-#' * `hz`, heartbeat rate estimate (in Hz)
-#' * `sd`, standard deviation of the intervals between wave peaks
+#' * `n`,   number of wave peaks identified
+#' * `hz`,  heartbeat rate estimate (in Hz)
+#' * `sd`,  standard deviation of the intervals between wave peaks
+#' * `ci`,  confidence interval (hz ± ci)
+#' * `bpm`, heartbeat rate estimate (in Beats Per Minute)
+#' * `bpm_ci`, confidence interval (bpm ± bpm_ci)
 #'
 #' @details
 #' improved function from https://github.com/ig248/pyampd
@@ -77,16 +80,24 @@ pulse_find_peaks_one_channel <- function(split_window_one_channel) {
 	t_pks <- t[pks]
 	intervals <- as.numeric(diff(t_pks))
 
-	hz    <- round(mean(1 / intervals), 3)
-	hz_sd <- round(stats::sd(1 / intervals), 3)
+	hz     <- mean(1 / intervals)
+	# hz_sd  <- stats::sd(1 / intervals)
+	hz_sd  <- stats::sd(intervals)
+	hz_CI  <- hz_sd * 1.96
+
+	bpm    <- hz * 60
+	bpm_CI <- hz_CI * 60
 
 	# return
 	tibble::tibble(
-		time  = mean(t),
-		t_pks = list(t_pks),
-		n  = length(pks),
-		hz = hz,
-		sd = hz_sd
+		time   = mean(t),
+		t_pks  = list(t_pks),
+		n      = length(pks),
+		hz     = round(hz,     3),
+		sd     = round(hz_sd,  3),
+		ci     = round(hz_CI,  3),
+		bpm    = round(bpm,    3),
+		bpm_ci = round(bpm_CI, 3)
 	)
 }
 
@@ -102,9 +113,12 @@ pulse_find_peaks_one_channel <- function(split_window_one_channel) {
 #' * `id`, PULSE channel IDs
 #' * `time`, time at the center of split_window_one_channel$time
 #' * `data`, a list of tibbles with raw PULSE data for each combination of channel and window, with columns `time`, `val` and `peak` (`TRUE` in rows corresponding to wave peaks)
-#' * `n`, number of wave peaks identified
-#' * `hz`, heartbeat rate estimate (in Hz)
-#' * `sd`, standard deviation of the intervals between wave peaks
+#' * `n`,   number of wave peaks identified
+#' * `hz`,  heartbeat rate estimate (in Hz)
+#' * `sd`,  standard deviation of the intervals between wave peaks
+#' * `ci`,  confidence interval (hz ± ci)
+#' * `bpm`, heartbeat rate estimate (in Beats Per Minute)
+#' * `bpm_ci`, confidence interval (bpm ± bpm_ci)
 
 #' @export
 #'
@@ -179,9 +193,12 @@ pulse_find_peaks_all_channels <- function(split_window) {
 #' * `id`, PULSE channel IDs
 #' * `time`, time at the center of each time window
 #' * `data`, a list of tibbles with raw PULSE data for each combination of channel and window, with columns `time`, `val` and `peak` (`TRUE` in rows corresponding to wave peaks)
-#' * `n`, number of wave peaks identified
-#' * `hz`, heartbeat rate estimate (in Hz)
-#' * `sd`, standard deviation of the intervals between wave peaks
+#' * `n`,   number of wave peaks identified
+#' * `hz`,  heartbeat rate estimate (in Hz)
+#' * `sd`,  standard deviation of the intervals between wave peaks
+#' * `ci`,  confidence interval (hz ± ci)
+#' * `bpm`, heartbeat rate estimate (in Beats Per Minute)
+#' * `bpm_ci`, confidence interval (bpm ± bpm_ci)
 #'
 #' @export
 #'

@@ -26,7 +26,7 @@ A similar tibble as the one provided in \code{heart_rates}, but without the \cod
 \description{
 Take the output from \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}) and summarise \code{hz} estimates over new user-defined time windows using \code{fun} (a summary function). In effect, this procedure reduces the number of data points available over time.
 
-Note that the output of \code{pulse_summarise()} can be inspected with \code{\link[=pulse_plot_all]{pulse_plot_all()}} but not \code{pulse_plot_raw()}.
+Note that the output of \code{pulse_summarise()} can be inspected with \code{\link[=pulse_plot]{pulse_plot()}} but not \code{pulse_plot_raw()}.
 }
 \section{Details}{
 
@@ -62,8 +62,8 @@ nrow(pulse_summarise(heart_rates, span_mins = 5)) # == 20
 pulse_summarise(heart_rates, span_mins = 5)
 
 # Note that visualizing the output from 'plot_summarise()' with
-#  'pulse_plot_all()' may result in many warnings
-pulse_plot_all(pulse_summarise(heart_rates, span_mins = 5))
+#  'pulse_plot()' may result in many warnings
+pulse_plot(pulse_summarise(heart_rates, span_mins = 5))
 "> There were 44 warnings (use warnings() to see them)"
 
 # That happens when the value chosen for 'span_mins' is such
@@ -72,15 +72,15 @@ pulse_plot_all(pulse_summarise(heart_rates, span_mins = 5))
 # Alternatively, do one of the following:
 
 # reduce 'span_mins' to still get enough data points
-pulse_plot_all(pulse_summarise(heart_rates, span_mins = 2, min_data_points = 0))
+pulse_plot(pulse_summarise(heart_rates, span_mins = 2, min_data_points = 0))
 
 # or disable the smoothing curve
-pulse_plot_all(pulse_summarise(heart_rates, span_mins = 5), smooth = FALSE)
+pulse_plot(pulse_summarise(heart_rates, span_mins = 5), smooth = FALSE)
 }
 \seealso{
 \itemize{
 \item \code{\link[=pulse_heart]{pulse_heart()}} is the function that generates the input for \code{pulse_summarise}
-\item \code{\link[=pulse_plot_all]{pulse_plot_all()}} can be called to visualize the output from \code{pulse_summarise}
+\item \code{\link[=pulse_plot]{pulse_plot()}} can be called to visualize the output from \code{pulse_summarise}
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to \code{pulse_summarise}
 }
 }

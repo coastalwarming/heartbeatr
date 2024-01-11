@@ -1,4 +1,4 @@
-data <- t_pks <- id <- sd <- n <- msg <- time <- hz <- hz_norm <- peak <- val <- NULL
+data <- t_pks <- id <- sd <- n <- msg <- time <- hz <- hz_norm <- peak <- val <- ci <- bpm_ci <- val_ci <- NULL
 
 is.pulse <- function(path) {
 	lines <- path %>%
@@ -97,7 +97,7 @@ pulse_example <- function(pattern = NULL) {
 #'
 #' @seealso
 #'  * [pulse_heart()] is the function that generates the input for `pulse_normalize`
-#'  * [pulse_plot_all()] can be called to visualize the output from `pulse_normalize`
+#'  * [pulse_plot()] can be called to visualize the output from `pulse_normalize`
 #'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to `pulse_normalize`
 #'
 #' @examples
@@ -149,7 +149,7 @@ pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
 #' @description
 #' Take the output from [`PULSE()`] (or [`pulse_heart()`]) and summarise `hz` estimates over new user-defined time windows using `fun` (a summary function). In effect, this procedure reduces the number of data points available over time.
 #'
-#' Note that the output of `pulse_summarise()` can be inspected with [`pulse_plot_all()`] but not `pulse_plot_raw()`.
+#' Note that the output of `pulse_summarise()` can be inspected with [`pulse_plot()`] but not `pulse_plot_raw()`.
 #'
 #' @section Details:
 #' The PULSE multi-channel system captures data continuously. When processing those data, users should aim to obtain estimates of heartbeat rate at a frequency that conforms to their system's natural temporal variability, or risk running into oversampling (which has important statistical implications and must be avoided or explicitly handled).
@@ -173,7 +173,7 @@ pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
 #'
 #' @seealso
 #'  * [pulse_heart()] is the function that generates the input for `pulse_summarise`
-#'  * [pulse_plot_all()] can be called to visualize the output from `pulse_summarise`
+#'  * [pulse_plot()] can be called to visualize the output from `pulse_summarise`
 #'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to `pulse_summarise`
 #'
 #' @examples
@@ -197,8 +197,8 @@ pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
 #' pulse_summarise(heart_rates, span_mins = 5)
 #'
 #' # Note that visualizing the output from 'plot_summarise()' with
-#' #  'pulse_plot_all()' may result in many warnings
-#' pulse_plot_all(pulse_summarise(heart_rates, span_mins = 5))
+#' #  'pulse_plot()' may result in many warnings
+#' pulse_plot(pulse_summarise(heart_rates, span_mins = 5))
 #' "> There were 44 warnings (use warnings() to see them)"
 #'
 #' # That happens when the value chosen for 'span_mins' is such
@@ -207,10 +207,10 @@ pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
 #' # Alternatively, do one of the following:
 #'
 #' # reduce 'span_mins' to still get enough data points
-#' pulse_plot_all(pulse_summarise(heart_rates, span_mins = 2, min_data_points = 0))
+#' pulse_plot(pulse_summarise(heart_rates, span_mins = 2, min_data_points = 0))
 #'
 #' # or disable the smoothing curve
-#' pulse_plot_all(pulse_summarise(heart_rates, span_mins = 5), smooth = FALSE)
+#' pulse_plot(pulse_summarise(heart_rates, span_mins = 5), smooth = FALSE)
 pulse_summarise <- function(heart_rates, fun = stats::median, span_mins = 10, min_data_points = 2) {
 	heart_rates %>%
 		dplyr::group_by(id, time = lubridate::floor_date(time, stringr::str_c(span_mins, " mins"))) %>%

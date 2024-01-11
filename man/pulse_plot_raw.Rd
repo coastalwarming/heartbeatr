@@ -4,16 +4,18 @@
 \alias{pulse_plot_raw}
 \title{Plot raw PULSE data}
 \usage{
-pulse_plot_raw(heart_rates, ID, i, range = 0)
+pulse_plot_raw(heart_rates, ID, target_time = NULL, range = 0, target_i = NULL)
 }
 \arguments{
 \item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
 
-\item{ID}{String naming the target channel id (must match exactly)}
+\item{ID}{String naming a single target channel id (must match exactly); defaults to \code{NULL}, which results in all IDs being plotted}
 
-\item{i}{A numeric value pointing to the index of the target window}
+\item{target_time}{A target time expressed as POSIX time or a string that can be converted by \code{as.POSIXct()}; \code{target_i} will be computed as the window closest to the \code{target_time}}
 
-\item{range}{A numeric value indicating how many more windows to plot (centered around \code{i}, i.e., if \code{i = 5} and \code{range = 2}, windows 3 to 7 will be plotted, with window 5 at the center)}
+\item{range}{A numeric value indicating how many more windows to plot (centered around the target window, i.e., if \code{target_i = 5} and \code{range = 2}, windows 3 to 7 will be plotted, with window 5 at the center)}
+
+\item{target_i}{A numeric value pointing to the index of the target window}
 }
 \value{
 A ggplot object that can be augmented using ggplot2 syntax or plotted right away
@@ -42,18 +44,21 @@ heart_rates <- PULSE(
 # End prepare data ----
 
 # Single window (more detail)
-pulse_plot_raw(heart_rates, "limpet_1", 5)
+# using a target date and time
+pulse_plot_raw(heart_rates, "limpet_1", "2022-12-29 13:55")
+# using the index (in this case, the 5th window)
+pulse_plot_raw(heart_rates, "limpet_1", target_i = 5)
 
 # Multiple windows (less detail but more context)
-pulse_plot_raw(heart_rates, "limpet_1", 5, 2) # stats are shown for window 'i'
+pulse_plot_raw(heart_rates, "limpet_1", "2022-12-29 13:55", 2)
 
 # The plot can be modified using ggplot2 syntax
-pulse_plot_raw(heart_rates, "limpet_1", 10) + ggplot2::theme_classic()
+pulse_plot_raw(heart_rates, "limpet_1", target_i = 5) + ggplot2::theme_classic()
 }
 \seealso{
 \itemize{
-\item use \code{\link[=pulse_plot_all]{pulse_plot_all()}} to plot processed PULSE data for a several channels
-\item \code{\link[=pulse_heart]{pulse_heart()}} or \code{\link[=PULSE]{PULSE()}} generate the input for \code{pulse_plot_all}
+\item use \code{\link[=pulse_plot]{pulse_plot()}} to plot processed PULSE data for a several channels
+\item \code{\link[=pulse_heart]{pulse_heart()}} or \code{\link[=PULSE]{PULSE()}} generate the input for \code{pulse_plot}
 \item call \code{\link[=pulse_normalize]{pulse_normalize()}} to anchor heart beat data from each channel to a reference period during the experiment
 }
 }

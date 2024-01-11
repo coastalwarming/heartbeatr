@@ -13,7 +13,7 @@ Given one or multiple paths to files produced by a PULSE multi-channel system (e
 
 Authors:
 \itemize{
-  \item Fernando Lima \email{fplima@gmail.com} (\href{https://orcid.org/0000-0000-0000-0000}{ORCID})
+  \item Fernando Lima \email{fplima@gmail.com} (\href{https://orcid.org/0000-0001-9575-9834}{ORCID})
 }
 
 }

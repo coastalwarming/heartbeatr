@@ -1,7 +1,7 @@
 Package: heartbeatr
 Type: Package
 Title: A Workflow to Process Data Collected with PULSE Systems (Electricblue.eu)
-Version: 0.0.0.9000
+Version: 0.0.0.9100
 Authors@R: c(
     person("Rui", "Seabra", , "ptruimar@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0240-3992")),

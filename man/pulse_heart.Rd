@@ -19,9 +19,12 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \code{id}, PULSE channel IDs
 \item \code{time}, time at the center of each time window
 \item \code{data}, a list of tibbles with raw PULSE data for each combination of channel and window, with columns \code{time}, \code{val} and \code{peak} (\code{TRUE} in rows corresponding to wave peaks)
-\item \code{n}, number of wave peaks identified
-\item \code{hz}, heartbeat rate estimate (in Hz)
-\item \code{sd}, standard deviation of the intervals between wave peaks
+\item \code{n},   number of wave peaks identified
+\item \code{hz},  heartbeat rate estimate (in Hz)
+\item \code{sd},  standard deviation of the intervals between wave peaks
+\item \code{ci},  confidence interval (hz ± ci)
+\item \code{bpm}, heartbeat rate estimate (in Beats Per Minute)
+\item \code{bpm_ci}, confidence interval (bpm ± bpm_ci)
 }
 }
 \description{
