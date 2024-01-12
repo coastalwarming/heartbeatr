@@ -22,7 +22,7 @@
 #' @inheritParams pulse_heart
 #' @param msg A logical to decide if non-crucial messages (but not errors) are shown (defaults to `TRUE`)
 #'
-#' @param discard_channels A string with the names of channels to be discarded from the analysis. The **exact** names must be provided (case sensitive). Discarding unused channels speeds up the workflow!
+#' @param discard_channels A string with the names of channels to be discarded from the analysis. `discard_channels` is forced to lowercase, but other than that, the **exact** names must be provided. Discarding unused channels can greatly speed the workflow!
 #'
 #' @section One experiment:
 #' The PULSE workflow must be applied to a single experiment each time. By *experiment* we mean a collection of PULSE data where all the relevant parameters are invariant, including (but not limited):
@@ -128,6 +128,7 @@ PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shif
 
 	# discard unused/unwanted channels
 	if (!is.null(discard_channels)) {
+		discard_channels <- stringr::str_to_lower(discard_channels)
 		not_match <- discard_channels[!(discard_channels %in% colnames(pulse_data$data))]
 		if (length(not_match)) stop(stringr::str_c("\n  --> [x] all elements of 'discard_channels' must be exact matches to a channel ID\n  --> [i] offending elements: ", stringr::str_c(not_match, collapse = ", ")))
 
