@@ -47,7 +47,7 @@ pulse_data_split <- pulse_split(
    msg = FALSE
    )
 pulse_data_split <- pulse_optimize(pulse_data_split,
-                                   target_freq = 40,
+                                   interpolation_freq = 40,
                                    bandwidth = 0.2)
 heart_rates <- pulse_heart(pulse_data_split, msg = FALSE)
 
@@ -59,7 +59,7 @@ heart_rates <- PULSE(
   window_width_secs = 30,
   window_shift_secs = 60,
   min_data_points   = 0.8,
-  target_freq = 40,
+  interpolation_freq = 40,
   bandwidth   = 0.2,
   msg = FALSE
   )
@@ -180,6 +180,25 @@ pulse_plot(heart_rates)
 ```
 
 <img src="man/figures/README-plot2-1.png" width="100%" />
+
+For any dataset with more than a few data points, the challenge when
+inspecting the quality of the analysis comes from the number of single
+graphs one would have to plot and check. The `pulse_anim` function is
+designed to streamline this process. It produces an animation showing
+the raw data and peak identification for each time window analyzed,
+allowing for a quick inspection of all data points and the
+identification of moments when the algorithm didn’t perform well enough.
+**THIS IS A VERY POWERFUL TOOL - be sure to try it!**
+
+``` r
+# the animation is saved to the path printed at the end, and the user 
+# needs to open the file using external software to inspect it.
+pulse_anim(heart_rates)
+#> 
+#> 
+#>   --> [i] path to animation file:
+#>     /Users/ruiseabra/Dropbox/RS/bio/tasks/hb/hb_pulse_package/heartbeatr/anim.mp4
+```
 
 The number of data points can be reduced:
 
