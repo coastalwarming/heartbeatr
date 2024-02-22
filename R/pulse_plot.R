@@ -232,4 +232,99 @@ pulse_plot_raw <- function(heart_rates, ID, target_time = NULL, range = 0, targe
 	return(p)
 }
 
+#' Plot and animate PULSE data
+#'
+#' @description
+#' A shortcut function based on `ggplot2` and `gganimate` to facilitate the quick inspection of the qualitity of the analysis (with the peaks detected signaled with red dots). Useful to visually inspect the performance of the algorithm.
+#'
+#' @details
+#' This function is **NOT meant** for high-level displaying of the data - it's simply a quick shortcut to facilitate data inspection.
+#'
+#' When inspecting the movie, go through each frame and assess if red dots top all heartbeats and no more than that. Additional info is displayed in the graph's title (such as sd). Difficult datasets may result in true heartbeats being missed or non-heartbeats (noise) being erroneously detected (false positives and/or false negatives). Note that the wider the time window (controlled by the `window_width_secs` parameter in [`pulse_split()`]) and the higher the heartbeat rate, the less critical are a few false positives or negatives (over a 10 secs window, missing 1 peak in 10 results in hz to drop by 10% (from 1 to 0.9), while over a 30 secs window, missing 1 peak in 30 results in a drop of 3.33% (from 1 to 0.967), and missing 1 peak in 60 results in a drop of just 1.7%. With the animated plot, it becomes much quicker and easy to inspect the overall performance of the analysis over a large dataset.
+#'
+#' @inheritParams pulse_plot
+#' @param fps An integer representing the number of frames per second in the animation; defaults to `10`; more details below.
+#' @param ID String naming a single or several target channel ids (each must match exactly); defaults to `NULL`, which results in all IDs being plotted
+#'
+#' @return
+#' An `.mp4` file is saved and its path printed to the console.
+#'
+#' @section More on setting the right value for `fps`:
+#' The default value of `10` generates a shorter video with 10 individual graphs displayed over 1 second. At this rate, the resulting animation file is smaller, the animation plays quicker and detailed inspection requires pausing the animation playback (but frame-by-frame ainspection is still possible). This is ideal for large datasets.
+#' Alternatively, lower values will result in each individual graph persisting in the animation for a longer period, making it easier to inspect without the need to hit pause and play so often. Naturaly, the file size will also be larger, and if the dataset is large then the animation may extend for a uncomfortably long period of time. A value of `1` will result in only one graph being shown over each second.
+#'
+#' @export
+#'
+#' @seealso
+#'  * use [pulse_plot()] to plot processed PULSE data for a several channels
+#'  * [pulse_heart()] or [PULSE()] generate the input for `pulse_anim`
+#'
+#' @examples
+#' # Begin prepare data ----
+#' paths <- pulse_example("RAW_original_")
+#' heart_rates <- PULSE(
+#'   paths,
+#'   discard_channels  = paste0("s", 5:10),
+#'   window_width_secs = 30,
+#'   window_shift_secs = 60,
+#'   min_data_points   = 0.8,
+#'   interpolation_freq = 40,
+#'   bandwidth   = 0.2,
+#'   with_progress = TRUE
+#'   )
+#' # End prepare data ----
+#'
+#' # data from only one channel
+#' pulse_anim(heart_rates, ID = "limpet_1")
+#'
+#' # all channels
+#' pulse_anim(heart_rates) # notice how quickly one can determine that only channel "limpet_1" has recorded good data
+pulse_anim <- function(heart_rates, fps = 10, ID = NULL) {
+	if (is.null(ID)) ID <- unique(heart_rates$id)
+
+	i_char <- heart_rates %>% nrow() %>% nchar()
+	n_char <- heart_rates %>% dplyr::pull(n) %>% max() %>% nchar()
+
+	tmp <- heart_rates %>%
+		dplyr::filter(id %in% ID) %>%
+		dplyr::rename(t = time) %>%
+		tibble::rowid_to_column("i") %>%
+		dplyr::mutate(
+			state = stringr::str_c(
+				"\nrow ", formatC(i, width = i_char), " - ", id,
+				"\n", t,
+				"\n(hz = ", formatC( hz, digits = 2, format = "f"),
+				", bpm = ", formatC(bpm, digits = 1, format = "f"), ")",
+				"\n(n peaks = ", formatC(  n, width = n_char),
+				", sd = ",  formatC( sd, digits = 2, format = "f"),
+				" [ ", ifelse(sd < 1, "*", " "), ifelse(sd < 0.5, "*", " "), ifelse(sd < 0.2, "*", " "), " ] )"
+			),
+			data = purrr::map(data, ~dplyr::mutate(.x, time = time - as.numeric(min(time))))
+		) %>%
+		tidyr::unnest(data)
+
+	anim <- ggplot2::ggplot() +
+		ggplot2::ggtitle("", subtitle = "{closest_state}") +
+		ggplot2::xlab("") + ggplot2::ylab("") +
+		ggplot2::theme(
+			axis.text = ggplot2::element_blank(),
+			axis.ticks = ggplot2::element_blank()
+		) +
+		ggplot2::geom_line(
+			data = tmp,
+			ggplot2::aes(time, val, col = id)) +
+		ggplot2::geom_point(
+			data = dplyr::filter(tmp, peak),
+			ggplot2::aes(time, val),
+			col = "red") +
+		ggplot2::theme(legend.position = "bottom") +
+		gganimate::transition_states(state, wrap = FALSE)
+
+	gganimate::animate(anim,
+										 nframes = dplyr::n_distinct(tmp$state),
+										 fps = fps,
+										 renderer = gganimate::av_renderer(file = "anim.mp4"))
+
+	message("\n\n  --> [i] path to animation file:\n    ", file.path(getwd(), "anim.mp4"))
+}
 

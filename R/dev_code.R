@@ -47,6 +47,8 @@ if (FALSE) {
 	use_package("stringr")
 	use_package("tibble")
 	use_package("tidyr")
+	use_package("gganimate")
+	use_package("transformr")
 
 	### create and edit a new R file
 	use_r("pulse_optimize")

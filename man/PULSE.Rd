@@ -19,7 +19,7 @@ PULSE(
 \arguments{
 \item{paths}{File paths to CSV files produced by a PULSE system during a single experiment.}
 
-\item{discard_channels}{A string with the names of channels to be discarded from the analysis. The \strong{exact} names must be provided (case sensitive). Discarding unused channels speeds up the workflow!}
+\item{discard_channels}{A string with the names of channels to be discarded from the analysis. \code{discard_channels} is forced to lowercase, but other than that, the \strong{exact} names must be provided. Discarding unused channels can greatly speed the workflow!}
 
 \item{window_width_secs}{A single numeric value indicating the width of the time windows (in seconds) over which heart rate frequency will later be computed.}
 
