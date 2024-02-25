@@ -9,7 +9,7 @@ pulse_anim(heart_rates, fps = 10, ID = NULL)
 \arguments{
 \item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
 
-\item{fps}{An integer representing the number of frames per second in the animation; defaults to \code{10}}
+\item{fps}{An integer representing the number of frames per second in the animation; defaults to \code{10}; more details below.}
 
 \item{ID}{String naming a single or several target channel ids (each must match exactly); defaults to \code{NULL}, which results in all IDs being plotted}
 }
@@ -27,7 +27,7 @@ When inspecting the movie, go through each frame and assess if red dots top all 
 \section{More on setting the right value for \code{fps}}{
 
 The default value of \code{10} generates a shorter video with 10 individual graphs displayed over 1 second. At this rate, the resulting animation file is smaller, the animation plays quicker and detailed inspection requires pausing the animation playback (but frame-by-frame ainspection is still possible). This is ideal for large datasets.
-Alternatively, lower values will result in each individual graph persisting in the animation for a longer period, making it easier to inspect without the need to hit pause and play so often. Naturaly, the file size will also be larger, and if the dataset is large then the animation may extend for a uncomfortable length of time. A value of \code{1} will result in only one graph being shown over 1 second.
+Alternatively, lower values will result in each individual graph persisting in the animation for a longer period, making it easier to inspect without the need to hit pause and play so often. Naturaly, the file size will also be larger, and if the dataset is large then the animation may extend for a uncomfortably long period of time. A value of \code{1} will result in only one graph being shown over each second.
 }
 
 \examples{

@@ -66,6 +66,20 @@ add_line <- function(msg1, msg2) {
   stringr::str_c(msg1, "\n - ", msg2)
 }
 
+#' before pulse_read
+#'
+#' @description
+#' before pulse_read
+#'
+#' @param paths File paths to CSV files produced by a PULSE system during a single experiment.
+#'
+#' @return
+#' _
+#'
+#' @export
+#'
+#' @examples
+#' _
 pulse_read_checks <- function(paths) {
   ok  <- FALSE
   out <- list()
