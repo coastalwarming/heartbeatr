@@ -84,6 +84,7 @@ pulse_read_checks <- function(paths) {
       all_pulse <- paths %>%
         purrr::map_lgl(is.pulse) %>%
         all()
+
       if (!all_pulse) {
         msg <- "\n  --> [x] 'paths' must only include PULSE files"
       } else {
@@ -105,8 +106,11 @@ pulse_read_checks <- function(paths) {
           #   lines in the header
           cols <- paths %>%
             purrr::map(pulse_read_channels)
-          cols <- do.call(rbind, cols) %>%
-            tibble::as_tibble(.name_repair = "minimal") %>%
+          COLS <- stringr::str_c("c", 1:length(cols[[1]]))
+          cols <- do.call(rbind, cols)
+          colnames(cols) <- COLS
+          cols <- cols %>%
+            tibble::as_tibble() %>%
             dplyr::distinct()
           freq <- purrr::map_dbl(paths, pulse_read_freq) %>% unique()
           skip <- purrr::map_dbl(paths, pulse_read_skip) %>% unique()
