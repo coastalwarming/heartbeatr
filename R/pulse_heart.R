@@ -343,7 +343,7 @@ pulse_check <- function(heart_rates) {
 	)
 
 	# identify which ones are above the mean
-	positives <- purrr::map(diffs, ~(.x - mean(.x) > 0))
+	positives <- purrr::map(diffs, ~(.x - quantile(.x, 0.5) > 0))
 
 	# compute the magnitude of the difference between the average value for the peaks above the mean, and the average value for the beaks below the mean
 	# if heart beats where identified as two peaks, this is indicative of how different the two groups of time spans are
