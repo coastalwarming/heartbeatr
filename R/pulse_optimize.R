@@ -66,7 +66,7 @@ pulse_interpolate <- function(split_window, interpolation_freq = 40) {
 	}
 
 	# return
-	return(new_split_window)
+	new_split_window
 }
 
 #' Smooth PULSE data
@@ -125,7 +125,7 @@ pulse_smooth <- function(split_window, bandwidth = 0.2) {
 	}
 
 	# return
-	return(new_split_window)
+	new_split_window
 }
 
 #' Optimize PULSE data through interpolation and smoothing (`STEP 3`)
@@ -188,5 +188,5 @@ pulse_optimize <- function(pulse_data_split, interpolation_freq = 40, bandwidth 
 	pulse_data_split <- purrr::map(pulse_data_split, pulse_smooth, bandwidth = bandwidth)
 
 	# return
-	return(pulse_data_split)
+	pulse_data_split
 }

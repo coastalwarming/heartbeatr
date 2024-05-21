@@ -123,7 +123,7 @@ pulse_plot <- function(heart_rates, ID = NULL, normalized = FALSE, smooth = TRUE
 	}
 
 	# return
-	return(p)
+	p
 }
 
 #' Plot raw PULSE data
@@ -229,7 +229,7 @@ pulse_plot_raw <- function(heart_rates, ID, target_time = NULL, range = 0, targe
 		ggplot2::facet_wrap(facets = "label", ncol = 1, scales = "free_x")
 
 	# return
-	return(p)
+	p
 }
 
 #' Plot and animate PULSE data

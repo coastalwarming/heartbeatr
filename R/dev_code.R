@@ -49,6 +49,7 @@ if (FALSE) {
 	use_package("tidyr")
 	use_package("gganimate")
 	use_package("transformr")
+	use_package("av")
 
 	### create and edit a new R file
 	use_r("pulse_optimize")

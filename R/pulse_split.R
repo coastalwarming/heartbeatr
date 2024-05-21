@@ -155,5 +155,5 @@ pulse_split <- function(pulse_data, window_width_secs, window_shift_secs, min_da
   pulse_data_split  <- pulse_data_split[nrows >= min_data_points]
 
   # return
-  return(pulse_data_split)
+  pulse_data_split
 }

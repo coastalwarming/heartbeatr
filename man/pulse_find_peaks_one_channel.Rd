@@ -13,7 +13,7 @@ pulse_find_peaks_one_channel(split_window_one_channel)
 A one-row tibble with 8 columns:
 \itemize{
 \item \code{time}, time at the center of split_window_one_channel$time
-\item \code{t_pks}, timestamps of each wave peak identified
+\item \code{t_pks}, time stamps of each wave peak identified
 \item \code{n},   number of wave peaks identified
 \item \code{hz},  heartbeat rate estimate (in Hz)
 \item \code{sd},  standard deviation of the intervals between wave peaks

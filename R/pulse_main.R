@@ -163,5 +163,5 @@ PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shif
 	)
 
 	# return
-	return(heart_rates)
+	heart_rates
 }

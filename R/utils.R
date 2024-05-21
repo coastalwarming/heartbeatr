@@ -13,7 +13,8 @@ is.pulse <- function(path) {
 		stringr::str_detect("pulse") %>%
 		any()
 
-	return(has.eb & has.pulse)
+	# return
+	has.eb & has.pulse
 }
 
 ## CHECK THIS FUNCTION
@@ -141,7 +142,7 @@ pulse_normalize <- function(heart_rates, t0 = NULL, span_mins = 10) {
 		dplyr::mutate(hz_norm = hz / hz_norm)
 
 	# return
-	return(heart_rates)
+	heart_rates
 }
 
 #' Summarise PULSE heartbeat rate estimates over new time windows
@@ -218,6 +219,9 @@ pulse_summarise <- function(heart_rates, fun = stats::median, span_mins = 10, mi
 			sd = stats::sd(hz),
 			hz = fun(hz),
 			n  = dplyr::n(),
+			ci = sd * 1.96,
+			bpm = hz * 60,
+			bpm_CI = ci * 60,
 			.groups = "drop"
 		) %>%
 		dplyr::filter(n > min_data_points)

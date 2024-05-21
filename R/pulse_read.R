@@ -56,7 +56,8 @@ pulse_read_data <- function(path, skip, cols, multi = TRUE) {
       dplyr::mutate(time = as.POSIXct(time)) %>%
       dplyr::mutate(dplyr::across(-time, ~as.numeric(.x)))
 
-    return(data)
+    # return
+    data
   } else {
     stop("currently only 'multi = TRUE' is supported")
   }
@@ -120,7 +121,7 @@ pulse_read_checks <- function(paths) {
           #   lines in the header
           cols <- paths %>%
             purrr::map(pulse_read_channels)
-          COLS <- stringr::str_c("c", 1:length(cols[[1]]))
+          COLS <- stringr::str_c("c", seq_along(cols[[1]]))
           cols <- do.call(rbind, cols)
           colnames(cols) <- COLS
           cols <- cols %>%
@@ -167,6 +168,8 @@ pulse_read_checks <- function(paths) {
       }
     }
   }
+
+  # return
   list(ok = ok, msg = msg, out = out)
 }
 
@@ -241,6 +244,5 @@ pulse_read <- function(paths, with_progress = NULL, msg = TRUE) {
     dplyr::arrange(time)
 
   # return
-  pulse_data <- list(data = pulse_data, freq = freq)
-  return(pulse_data)
+  list(data = pulse_data, freq = freq)
 }

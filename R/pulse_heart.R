@@ -8,9 +8,10 @@
 #' @return
 #' A one-row tibble with 8 columns:
 #' * `time`, time at the center of split_window_one_channel$time
-#' * `t_pks`, timestamps of each wave peak identified
+#' * `t_pks`, time stamps of each wave peak identified
 #' * `n`,   number of wave peaks identified
 #' * `hz`,  heartbeat rate estimate (in Hz)
+# #' * `sd`,  standard deviation of the normalized intervals between wave peaks
 #' * `sd`,  standard deviation of the intervals between wave peaks
 #' * `ci`,  confidence interval (hz ± ci)
 #' * `bpm`, heartbeat rate estimate (in Beats Per Minute)
@@ -18,6 +19,10 @@
 #'
 #' @details
 #' improved function from https://github.com/ig248/pyampd
+#'
+# #' @section Standard Deviation:
+# #' The `sd` outputed refers to the spread of the intervals between each peak identified. It is a measure of the quality of the raw data and the ability of the algorithm to identify a real heart beat. The lower the `sd`, the more regular are the peaks, and the more likely that the algorithm did find a real signal. Conversely, higher `sd`s indicate that the peaks are found at irregular intervals, and is an indiction of poor data. Because the frequency of the heartbeat in the data influences the magnitude of the `sd`, the absolute values for the intervals between each peak are first normalized (divided by the mean of those intervals, thus becoming a proportion). This ensures that `sd` values from different split windows can be directly compared.
+# #' In detail, `sd` is computed by: 1) taking the timestamps for each peak identified \[`t_pks`, 2)\] computing the intervals between each pair of consecutive peaks \[`as.numeric(diff(t_pks))`\], 2) normalizing \[`intervals / mean(intervals)`\], and 3) computing `sd` \[`sd(intervals)`\].
 #'
 #' @export
 #'
@@ -74,15 +79,27 @@ pulse_find_peaks_one_channel <- function(split_window_one_channel) {
 	# find peaks that persist on all scales up to l
 	MAT <- MAT[1:l_scale, , drop = FALSE]
 	pks_logical <- apply(MAT, 2, all)
+
+	# sometimes the algorithm picks up peaks at the begining or end of the
+	# split window, and those must be rejected
+	if (N > 20) {
+		l <- 10
+		pks_logical[1:l] <- FALSE
+		pks_logical[(N-l+1):N] <- FALSE
+	}
+
 	pks <- which(pks_logical)
 
 	# compute stats
 	t_pks <- t[pks]
 	intervals <- as.numeric(diff(t_pks))
 
-	hz     <- mean(1 / intervals)
+	hz <- mean(1 / intervals)
+
+	# intervals <- intervals / mean(intervals) # normalize intervals
 	# hz_sd  <- stats::sd(1 / intervals)
 	hz_sd  <- stats::sd(intervals)
+
 	hz_CI  <- hz_sd * 1.96
 
 	bpm    <- hz * 60
@@ -274,5 +291,5 @@ pulse_heart <- function(pulse_data_split, with_progress = NULL, msg = TRUE) {
 		dplyr::filter(n > 2)
 
 	# return
-	return(heart_rates)
+	heart_rates
 }
