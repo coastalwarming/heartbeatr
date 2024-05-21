@@ -22,6 +22,7 @@ The list with PULSE data split across time windows supplied in \code{pulse_data_
 \item \verb{step 2} -- \code{\link[=pulse_split]{pulse_split()}}
 \item \strong{\verb{-->>} step 3 -- \code{\link[=pulse_optimize]{pulse_optimize()}} \verb{<<--}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
+\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
 }
 
 IMPORTANT NOTE: \code{pulse_optimize()} can be skipped, but that is highly discouraged.

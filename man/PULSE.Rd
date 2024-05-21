@@ -2,7 +2,7 @@
 % Please edit documentation in R/pulse_main.R
 \name{PULSE}
 \alias{PULSE}
-\title{Process PULSE data from a single experiment  (\verb{STEPS 1-4})}
+\title{Process PULSE data from a single experiment  (\verb{STEPS 1-5})}
 \usage{
 PULSE(
   paths,
@@ -42,8 +42,11 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \code{time}, time at the center of each time window
 \item \code{data}, a list of tibbles with raw PULSE data for each combination of channel and window, with columns \code{time}, \code{val} and \code{peak} (\code{TRUE} in rows corresponding to wave peaks)
 \item \code{n}, number of wave peaks identified
-\item \code{hz}, heartbeat rate estimate (in Hz)
 \item \code{sd}, standard deviation of the intervals between wave peaks
+\item \code{hz}, heartbeat rate estimate (in Hz)
+\item \code{ci}, confidence interval (hz ± ci)
+\item \code{dbl_rat}, ratio of consecutive asymmetric peaks
+\item \code{dbl_mag}, magnitude of difference between the two groups of asymmetric peaks
 }
 }
 \description{
@@ -53,6 +56,7 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \verb{step 2} -- \code{\link[=pulse_split]{pulse_split()}}
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
+\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
 \item \verb{extra step} -- \code{\link[=pulse_summarise]{pulse_summarise()}}
 }
 
@@ -87,6 +91,11 @@ Check the helpfiles of the underlying functions to obtain additional details abo
 Also check \code{\link[=pulse_summarise]{pulse_summarise()}} for important info about oversampling and strategies to handle it while processing PULSE data with the \code{\link{heartbeatr-package}}.
 }
 
+\section{BPM}{
+
+To convert to Beats Per Minute, simply multiply \code{hz} and \code{ci} by 60.
+}
+
 \examples{
 # Begin prepare data ----
 paths <- pulse_example("RAW_original_")
@@ -110,7 +119,7 @@ PULSE(
 \item check \code{\link[future:plan]{future::plan()}} to optimize parallel processing
 \item \code{\link[=approx]{approx()}} is used by \code{\link[=pulse_interpolate]{pulse_interpolate()}} for the linear interpolation of PULSE data
 \item \code{\link[=ksmooth]{ksmooth()}} is used by \code{\link[=pulse_smooth]{pulse_smooth()}} for the kernel smoothing of PULSE data
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}} and \code{\link[=pulse_heart]{pulse_heart()}} are the functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_check]{pulse_check()}} are the functions needed for the complete PULSE processing workflow
 \item \code{\link[=pulse_summarise]{pulse_summarise()}} can be used to reduce the number of data points returned
 }
 }

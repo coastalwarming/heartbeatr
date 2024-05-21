@@ -26,6 +26,7 @@ A list with two elements:
 \item \verb{step 2} -- \code{\link[=pulse_split]{pulse_split()}}
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
+\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
 }
 
 Importing data from PULSE \code{'.csv'} files is the first step of the analysis of PULSE data.

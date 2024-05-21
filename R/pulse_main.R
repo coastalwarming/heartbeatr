@@ -1,4 +1,4 @@
-#' Process PULSE data from a single experiment  (`STEPS 1-4`)
+#' Process PULSE data from a single experiment  (`STEPS 1-5`)
 #'
 #' @description
 #' **ALL STEPS EXECUTED SEQUENTIALLY**
@@ -7,6 +7,7 @@
 #' * `step 2` -- [`pulse_split()`]
 #' * `step 3` -- [`pulse_optimize()`]
 #' * `step 4` -- [`pulse_heart()`]
+#' * `step 5` -- [`pulse_check()`]
 #'
 #' * `extra step` -- [`pulse_summarise()`]
 #'
@@ -47,8 +48,14 @@
 #' * `time`, time at the center of each time window
 #' * `data`, a list of tibbles with raw PULSE data for each combination of channel and window, with columns `time`, `val` and `peak` (`TRUE` in rows corresponding to wave peaks)
 #' * `n`, number of wave peaks identified
-#' * `hz`, heartbeat rate estimate (in Hz)
 #' * `sd`, standard deviation of the intervals between wave peaks
+#' * `hz`, heartbeat rate estimate (in Hz)
+#' * `ci`, confidence interval (hz ± ci)
+#' * `dbl_rat`, ratio of consecutive asymmetric peaks
+#' * `dbl_mag`, magnitude of difference between the two groups of asymmetric peaks
+#'
+#' @section BPM:
+#' To convert to Beats Per Minute, simply multiply `hz` and `ci` by 60.
 #'
 #' @export
 #'
@@ -57,7 +64,7 @@
 #'  * check [future::plan()] to optimize parallel processing
 #'  * [approx()] is used by [pulse_interpolate()] for the linear interpolation of PULSE data
 #'  * [ksmooth()] is used by [pulse_smooth()] for the kernel smoothing of PULSE data
-#'  * [pulse_read()], [pulse_split()], [pulse_optimize()] and [pulse_heart()] are the functions needed for the complete PULSE processing workflow
+#'  * [pulse_read()], [pulse_split()], [pulse_optimize()], [pulse_heart()] and [pulse_check()] are the functions needed for the complete PULSE processing workflow
 #'  * [pulse_summarise()] can be used to reduce the number of data points returned
 #'
 #' @examples
@@ -161,6 +168,9 @@ PULSE <- function(paths, discard_channels = NULL, window_width_secs, window_shif
 		with_progress = with_progress,
 		msg = FALSE
 	)
+
+	# check for doublings
+	heart_rates <- pulse_check(heart_rates)
 
 	# return
 	heart_rates

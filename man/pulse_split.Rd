@@ -39,6 +39,7 @@ A list with all the valid time windows (i.e., complying with \code{min_data_poin
 \item \strong{\verb{-->>} step 2 -- \code{\link[=pulse_split]{pulse_split()}} \verb{<<--}}
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
+\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
 }
 
 After all raw PULSE data has been imported, the dataset must be split across sequential time windows.

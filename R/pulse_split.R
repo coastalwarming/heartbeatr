@@ -5,6 +5,7 @@
 #' * **`-->>` step 2 -- [`pulse_split()`] `<<--`**
 #' * `step 3` -- [`pulse_optimize()`]
 #' * `step 4` -- [`pulse_heart()`]
+#' * `step 5` -- [`pulse_check()`]
 #'
 #' After all raw PULSE data has been imported, the dataset must be split across sequential time windows.
 #'

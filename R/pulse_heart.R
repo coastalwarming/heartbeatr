@@ -7,22 +7,23 @@
 #'
 #' @return
 #' A one-row tibble with 8 columns:
-#' * `time`, time at the center of split_window_one_channel$time
+#' * `time`,  time at the center of split_window_one_channel$time
 #' * `t_pks`, time stamps of each wave peak identified
-#' * `n`,   number of wave peaks identified
-#' * `hz`,  heartbeat rate estimate (in Hz)
+#' * `n`,     number of wave peaks identified
+#' * `sd`,    standard deviation of the intervals between wave peaks
 # #' * `sd`,  standard deviation of the normalized intervals between wave peaks
-#' * `sd`,  standard deviation of the intervals between wave peaks
-#' * `ci`,  confidence interval (hz ± ci)
-#' * `bpm`, heartbeat rate estimate (in Beats Per Minute)
-#' * `bpm_ci`, confidence interval (bpm ± bpm_ci)
+#' * `hz`,    heartbeat rate estimate (in Hz)
+#' * `ci`,    confidence interval (hz ± ci)
 #'
 #' @details
 #' improved function from https://github.com/ig248/pyampd
 #'
 # #' @section Standard Deviation:
-# #' The `sd` outputed refers to the spread of the intervals between each peak identified. It is a measure of the quality of the raw data and the ability of the algorithm to identify a real heart beat. The lower the `sd`, the more regular are the peaks, and the more likely that the algorithm did find a real signal. Conversely, higher `sd`s indicate that the peaks are found at irregular intervals, and is an indiction of poor data. Because the frequency of the heartbeat in the data influences the magnitude of the `sd`, the absolute values for the intervals between each peak are first normalized (divided by the mean of those intervals, thus becoming a proportion). This ensures that `sd` values from different split windows can be directly compared.
+# #' The `sd` outputed refers to the spread of the intervals between each peak identified. It is a measure of the quality of the raw data and the ability of the algorithm to identify a real heart beat. The lower the `sd`, the more regular are the peaks, and the more likely that the algorithm did find a real signal. Conversely, higher `sd`s indicate that the peaks are found at irregular intervals, and is an indication of poor quality data. Because the frequency of the heartbeat in the data influences the magnitude of the `sd`, the absolute values for the intervals between each peak are first normalized (divided by the mean of those intervals, thus becoming a proportion). This ensures that `sd` values from different split windows can be directly compared.
 # #' In detail, `sd` is computed by: 1) taking the timestamps for each peak identified \[`t_pks`, 2)\] computing the intervals between each pair of consecutive peaks \[`as.numeric(diff(t_pks))`\], 2) normalizing \[`intervals / mean(intervals)`\], and 3) computing `sd` \[`sd(intervals)`\].
+#'
+#' @section BPM:
+#' To convert to Beats Per Minute, simply multiply `hz` and `ci` by 60.
 #'
 #' @export
 #'
@@ -102,19 +103,14 @@ pulse_find_peaks_one_channel <- function(split_window_one_channel) {
 
 	hz_CI  <- hz_sd * 1.96
 
-	bpm    <- hz * 60
-	bpm_CI <- hz_CI * 60
-
 	# return
 	tibble::tibble(
 		time   = mean(t),
 		t_pks  = list(t_pks),
 		n      = length(pks),
-		hz     = round(hz,     3),
 		sd     = round(hz_sd,  3),
-		ci     = round(hz_CI,  3),
-		bpm    = round(bpm,    3),
-		bpm_ci = round(bpm_CI, 3)
+		hz     = round(hz,     3),
+		ci     = round(hz_CI,  3)
 	)
 }
 
@@ -131,11 +127,9 @@ pulse_find_peaks_one_channel <- function(split_window_one_channel) {
 #' * `time`, time at the center of split_window_one_channel$time
 #' * `data`, a list of tibbles with raw PULSE data for each combination of channel and window, with columns `time`, `val` and `peak` (`TRUE` in rows corresponding to wave peaks)
 #' * `n`,   number of wave peaks identified
-#' * `hz`,  heartbeat rate estimate (in Hz)
 #' * `sd`,  standard deviation of the intervals between wave peaks
+#' * `hz`,  heartbeat rate estimate (in Hz)
 #' * `ci`,  confidence interval (hz ± ci)
-#' * `bpm`, heartbeat rate estimate (in Beats Per Minute)
-#' * `bpm_ci`, confidence interval (bpm ± bpm_ci)
 
 #' @export
 #'
@@ -143,6 +137,9 @@ pulse_find_peaks_one_channel <- function(split_window_one_channel) {
 #'  * `pulse_find_peaks_all_channels` runs [pulse_find_peaks_one_channel()] on all PULSE channels
 #'  * [pulse_read()], [pulse_split()], [pulse_optimize()] and [pulse_heart()] are the functions needed for the complete PULSE processing workflow
 #'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once
+#'
+#' @section BPM:
+#' To convert to Beats Per Minute, simply multiply `hz` and `ci` by 60.
 #'
 #' @examples
 #' # Begin prepare data ----
@@ -195,7 +192,8 @@ pulse_find_peaks_all_channels <- function(split_window) {
 #' * `step 1` -- [`pulse_read()`]
 #' * `step 2` -- [`pulse_split()`]
 #' * `step 3` -- [`pulse_optimize()`]
-#' * **`-->>` step 4 -- [`pulse_heart()`] `<<--` FINAL PROCESSING STEP**
+#' * **`-->>` step 4 -- [`pulse_heart()`] `<<--`**
+#' * `step 5` -- [`pulse_check()`]
 #'
 #' For each combination of channel and time window, determine the heartbeat rate automatically.
 #'
@@ -211,11 +209,12 @@ pulse_find_peaks_all_channels <- function(split_window) {
 #' * `time`, time at the center of each time window
 #' * `data`, a list of tibbles with raw PULSE data for each combination of channel and window, with columns `time`, `val` and `peak` (`TRUE` in rows corresponding to wave peaks)
 #' * `n`,   number of wave peaks identified
-#' * `hz`,  heartbeat rate estimate (in Hz)
 #' * `sd`,  standard deviation of the intervals between wave peaks
+#' * `hz`,  heartbeat rate estimate (in Hz)
 #' * `ci`,  confidence interval (hz ± ci)
-#' * `bpm`, heartbeat rate estimate (in Beats Per Minute)
-#' * `bpm_ci`, confidence interval (bpm ± bpm_ci)
+#'
+#' @section BPM:
+#' To convert to Beats Per Minute, simply multiply `hz` and `ci` by 60.
 #'
 #' @export
 #'
@@ -292,4 +291,79 @@ pulse_heart <- function(pulse_data_split, with_progress = NULL, msg = TRUE) {
 
 	# return
 	heart_rates
+}
+
+#' Add stats to help identify possible doubling of hear rate frequencies (`STEP 5`)
+#'
+#' @description
+#' * `step 1` -- [`pulse_read()`]
+#' * `step 2` -- [`pulse_split()`]
+#' * `step 3` -- [`pulse_optimize()`]
+#' * `step 4` -- [`pulse_heart()`]
+#' * **`-->>` step 5 -- [`pulse_check()`] `<<--`**
+#'
+#' @description
+#' Identify data points where it is likely that the heart rate frequency computed corresponds to double the actual heart rate frequency due to the algorithm having identified two peaks per heart beat
+#'
+#' @param heart_rates The output of [pulse_heart()]
+#'
+#' @return A tibble similar to the one used as input, now augmented with two new columns: `dbl_rat` and `dbl_mag`.
+#'
+#' @export
+#'
+#' @seealso
+#'  * [pulse_heart()] generates the tibble to be used as input
+#'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once, including the identification of possible heart rate doublings
+#'
+#' @examples
+#' # Begin prepare data ----
+#' pulse_data_sub <- pulse_data
+#' pulse_data_sub$data <- pulse_data_sub$data[,1:5]
+#' pulse_data_split <- pulse_split(
+#'    pulse_data_sub,
+#'    window_width_secs = 30,
+#'    window_shift_secs = 60,
+#'    min_data_points = 0.8,
+#'    with_progress = TRUE)
+#' pulse_data_split <- pulse_optimize(pulse_data_split)
+#' heart_rates <- pulse_heart(pulse_data_split)
+#' # End prepare data ----
+#'
+#' # Identify possible heart rate doublings
+#' pulse_check(heart_rates)
+pulse_check <- function(heart_rates) {
+	hr <- heart_rates$data
+
+	# find the time spans between consecutive peaks
+	diffs <- purrr::map(hr, ~.x %>%
+												dplyr::filter(peak) %>%
+												dplyr::pull(time) %>%
+												diff() %>%
+												as.numeric()
+	)
+
+	# identify which ones are above the mean
+	positives <- purrr::map(diffs, ~(.x - mean(.x) > 0))
+
+	# compute the magnitude of the difference between the average value for the peaks above the mean, and the average value for the beaks below the mean
+	# if heart beats where identified as two peaks, this is indicative of how different the two groups of time spans are
+	POS <- purrr::map2(positives, diffs, ~.y[ .x])
+	NEG <- purrr::map2(positives, diffs, ~.y[!.x])
+	RNG <- purrr::map2_dbl(POS, NEG, ~((.x %>% mean()) - (.y %>% mean())))
+
+	# investigate if there's an alternation between values above and below the mean
+	# values closer to 1 indicate that the alternation is perfect (one above, one below, one above, etc)
+	alternates <- purrr::map(positives, ~.x %>%
+													 	which() %>%
+													 	diff() %>%
+													 	"=="(2)
+	)
+	alternates <- purrr::map_dbl(alternates, ~sum(.x) / length(.x)) # the value is expressed as a ratio
+
+	# return
+	heart_rates %>%
+		tibble::add_column(
+			dbl_rat = alternates,
+			dbl_mag = RNG
+		)
 }

@@ -180,6 +180,7 @@ pulse_read_checks <- function(paths) {
 #' * `step 2` -- [`pulse_split()`]
 #' * `step 3` -- [`pulse_optimize()`]
 #' * `step 4` -- [`pulse_heart()`]
+#' * `step 5` -- [`pulse_check()`]
 #'
 #' Importing data from PULSE `'.csv'` files is the first step of the analysis of PULSE data.
 #'

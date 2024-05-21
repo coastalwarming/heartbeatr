@@ -135,6 +135,7 @@ pulse_smooth <- function(split_window, bandwidth = 0.2) {
 #' * `step 2` -- [`pulse_split()`]
 #' * **`-->>` step 3 -- [`pulse_optimize()`] `<<--`**
 #' * `step 4` -- [`pulse_heart()`]
+#' * `step 5` -- [`pulse_check()`]
 #'
 #' IMPORTANT NOTE: `pulse_optimize()` can be skipped, but that is highly discouraged.
 #'

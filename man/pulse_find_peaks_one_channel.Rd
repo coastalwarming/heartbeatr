@@ -12,14 +12,12 @@ pulse_find_peaks_one_channel(split_window_one_channel)
 \value{
 A one-row tibble with 8 columns:
 \itemize{
-\item \code{time}, time at the center of split_window_one_channel$time
+\item \code{time},  time at the center of split_window_one_channel$time
 \item \code{t_pks}, time stamps of each wave peak identified
-\item \code{n},   number of wave peaks identified
-\item \code{hz},  heartbeat rate estimate (in Hz)
-\item \code{sd},  standard deviation of the intervals between wave peaks
-\item \code{ci},  confidence interval (hz ± ci)
-\item \code{bpm}, heartbeat rate estimate (in Beats Per Minute)
-\item \code{bpm_ci}, confidence interval (bpm ± bpm_ci)
+\item \code{n},     number of wave peaks identified
+\item \code{sd},    standard deviation of the intervals between wave peaks
+\item \code{hz},    heartbeat rate estimate (in Hz)
+\item \code{ci},    confidence interval (hz ± ci)
 }
 }
 \description{
@@ -28,6 +26,11 @@ Take data from one PULSE channel and identify the heartbeat wave peaks using an 
 \details{
 improved function from https://github.com/ig248/pyampd
 }
+\section{BPM}{
+
+To convert to Beats Per Minute, simply multiply \code{hz} and \code{ci} by 60.
+}
+
 \examples{
 # Begin prepare data ----
 pulse_data_sub <- pulse_data

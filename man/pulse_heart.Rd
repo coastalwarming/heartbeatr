@@ -20,11 +20,9 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \code{time}, time at the center of each time window
 \item \code{data}, a list of tibbles with raw PULSE data for each combination of channel and window, with columns \code{time}, \code{val} and \code{peak} (\code{TRUE} in rows corresponding to wave peaks)
 \item \code{n},   number of wave peaks identified
-\item \code{hz},  heartbeat rate estimate (in Hz)
 \item \code{sd},  standard deviation of the intervals between wave peaks
+\item \code{hz},  heartbeat rate estimate (in Hz)
 \item \code{ci},  confidence interval (hz ± ci)
-\item \code{bpm}, heartbeat rate estimate (in Beats Per Minute)
-\item \code{bpm_ci}, confidence interval (bpm ± bpm_ci)
 }
 }
 \description{
@@ -32,13 +30,19 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \verb{step 1} -- \code{\link[=pulse_read]{pulse_read()}}
 \item \verb{step 2} -- \code{\link[=pulse_split]{pulse_split()}}
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
-\item \strong{\verb{-->>} step 4 -- \code{\link[=pulse_heart]{pulse_heart()}} \verb{<<--} FINAL PROCESSING STEP}
+\item \strong{\verb{-->>} step 4 -- \code{\link[=pulse_heart]{pulse_heart()}} \verb{<<--}}
+\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
 }
 
 For each combination of channel and time window, determine the heartbeat rate automatically.
 
 \code{pulse_heart()} takes the output from a call to \code{pulse_optimize()} (or \code{pulse_split()} if optimization is skipped - highly discouraged) and employs an algorithm optimized for the identification of wave peaks in noisy data to determine the heartbeat rate in all channels of the PULSE dataset.
 }
+\section{BPM}{
+
+To convert to Beats Per Minute, simply multiply \code{hz} and \code{ci} by 60.
+}
+
 \examples{
 # Begin prepare data ----
 pulse_data_sub <- pulse_data
