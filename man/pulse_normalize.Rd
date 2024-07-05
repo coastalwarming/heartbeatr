@@ -7,34 +7,34 @@
 pulse_normalize(heart_rates, t0 = NULL, span_mins = 10)
 }
 \arguments{
-\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} or \code{\link[=pulse_heart]{pulse_heart()}}}
+\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}}, \code{\link[=pulse_heart]{pulse_heart()}} or \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}.}
 
-\item{t0}{Either \code{NULL} (default) or a \code{\link{POSIXct}} object pointing to the beginning of the period to be used to establish the baseline hearbeat rate (same value is used for all channels). If set to \code{NULL}, the baseline period is set to the earliest timestamp available.}
+\item{t0}{Either \code{NULL} (default) or a \code{\link{POSIXct}} object pointing to the beginning of the period to be used to establish the baseline heart beat frequency (same value is used for all channels). If set to \code{NULL}, the baseline period is set to the earliest timestamp available.}
 
-\item{span_mins}{Number of minutes since \code{t0}, indicating the width of the baseline period (baseline from \code{t0} to (\code{t0} + \code{span_mins} * 60)}
+\item{span_mins}{Number of minutes since \code{t0}, indicating the width of the baseline period (baseline from \code{t0} to (\code{t0} + \code{span_mins} * 60))}
 }
 \value{
-The same tibble provided in \code{heart_rates}, with an additional column \code{hz_norm} containing the normalized heartbeat rates
+The same tibble provided as input, with an additional column \code{hz_norm} containing the normalized heart beat frequencies.
 }
 \description{
-Take the output from \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}) and add a new column \code{hz_norm} containing the normalized heartbeat rate. The normalization of heartbeat rates is achieved by computing, for each individual (i.e., PULSE channel), the average heartbeat rate during a reference baseline period (ideally measured during acclimation, before the experiment is initiated).
+Take the output from \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, or \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}) and add a new column \code{hz_norm}, containing the normalized heartbeat rate. The normalization of heartbeat rates is achieved by computing, for each individual (i.e., PULSE channel), the average heartbeat rate during a reference baseline period (ideally measured during acclimation, before the treatment is initiated).
 }
 \section{Details}{
 
-Normalizing heartbeat rates is important because even individuals from the same species, the same age cohort and subjected to the same treatment will have different basal heartbeat rates. By normalizing these differences are minimized, and the analysis can focus on the change of hearbeat rate relative to a reference period (i.e., the baseline period chosen) rather than on the absolute values of heartbeat rate - which can be misleading.
+Normalizing heartbeat rates is important because even individuals from the same species, the same age cohort and subjected to the same treatment will have different basal heart beat frequencies. After normalizing, these differences are minimized, and the analysis can focus on the change of hear beat frequency relative to a reference period (i.e., the baseline period chosen) rather than on the absolute values of heart beat freaquency - which can be misleading.
 
-The period chosen for the baseline doesn't need to be long - it's much more important that conditions (and hopefully heartbeat rates) are as stable as possible during that period.
+The period chosen for the baseline doesn't need to be long - it's much more important that conditions (and hopefully heart beat frequencies) are as stable and least stressful as possible during that period.
 
-After normalization, heartbeat rates during the baseline period will, by definition, average \code{1}. Elsewhere, normalized heartbeat rates represent ratios against the baseline: \code{2} representa a doubling of the basal rate, while \code{0.5} indicates half of the basal rate. This means that two individuals may experience a doubling of heartbeat rate throughout an experiment even if their absolute heartbeat rates are markedly different from each other (e.g., individual 1 with hz at t0 = 0.6 and hz at t1 = 1.2, and individual 2 with hz at t0 = 0.8 and hz at t1 = 1.6 will both show hz_norm at t0 = 1 and hz_norm at t1 = 2).
+After normalization, heart beat frequencies during the baseline period will, by definition, average to \code{1}. Elsewhere, normalized heart beat frequencies represent ratios against the baseline: \code{2} represents a heart beat frequency double the basal frequency, while \code{0.5} indicates half of the basal frequency This means that two individuals may experience a doubling of heart beat frequency throughout an experiment even if their absolute heart beat frequencies are markedly different from each other (e.g., individual 1 with hz = 0.6 at t0 and hz = 1.2 at t1, and individual 2 with hz = 0.8 at t0 and hz = 1.6 at t1, will both show hz_norm = 1 at t0 and hz_norm = 2 at t1).
 }
 
 \section{Different baseline periods for each channel}{
 
-\code{\link[=pulse_normalize]{pulse_normalize()}} only allows setting a single baseline period. If different periods are needed for different channels or groups of channels, generate two or more subsets of \code{heart_rates} containing \code{heart_rates$id} that share the same baseline periods, normalize and bind the data together at the end (see example below).
+\code{pulse_normalize} only allows setting a single baseline period. If different periods are needed for different channels or groups of channels, generate two or more subsets of \code{heart_rates} containing \code{heart_rates$id} that share the same baseline periods, normalize and bind the data together at the end (see example below).
 }
 
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 pulse_data_sub <- pulse_data
 pulse_data_sub$data <- pulse_data_sub$data[,1:5]
 pulse_data_split <- pulse_split(
@@ -45,7 +45,8 @@ pulse_data_split <- pulse_split(
    with_progress = TRUE)
 pulse_data_split <- pulse_optimize(pulse_data_split)
 heart_rates <- pulse_heart(pulse_data_split)
-# End prepare data ----
+heart_rates <- pulse_doublecheck(heart_rates)
+## End prepare data ----
 
 # Normalize data using the same period as baseline for all channels
 pulse_normalize(heart_rates)
@@ -59,7 +60,7 @@ rbind(
 }
 \seealso{
 \itemize{
-\item \code{\link[=pulse_heart]{pulse_heart()}} is the function that generates the input for \code{pulse_normalize}
+\item \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the functions that generate the input for \code{pulse_normalize}
 \item \code{\link[=pulse_plot]{pulse_plot()}} can be called to visualize the output from \code{pulse_normalize}
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to \code{pulse_normalize}
 }

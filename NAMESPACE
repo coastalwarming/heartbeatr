@@ -2,10 +2,12 @@
 
 export(PULSE)
 export(pulse_anim)
-export(pulse_check)
+export(pulse_choose_keep)
+export(pulse_doublecheck)
 export(pulse_example)
 export(pulse_find_peaks_all_channels)
 export(pulse_find_peaks_one_channel)
+export(pulse_halve)
 export(pulse_heart)
 export(pulse_interpolate)
 export(pulse_normalize)

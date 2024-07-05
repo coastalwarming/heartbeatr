@@ -7,7 +7,7 @@
 pulse_plot_raw(heart_rates, ID, target_time = NULL, range = 0, target_i = NULL)
 }
 \arguments{
-\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
+\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
 
 \item{ID}{String naming a single target channel id (must match exactly); defaults to \code{NULL}, which results in all IDs being plotted}
 
@@ -29,7 +29,7 @@ This function is \strong{NOT meant} for high-level displaying of the data - it's
 When inspecting the plot, assess if red dots top all heartbeats and no more than that. Difficult datasets may result in true heartbeats being missed or non-heartbeats (noise) being erroneously detected (false positives and/or false negatives). Note that the wider the time window (controlled by the \code{window_width_secs} parameter in \code{\link[=pulse_split]{pulse_split()}}) and the higher the heartbeat rate, the less critical are a few false positives or negatives (over a 10 secs window, missing 1 peak in 10 results in hz to drop by 10\% (from 1 to 0.9), while over a 30 secs window, missing 1 peak in 30 results in a drop of 3.33\% (from 1 to 0.967), and missing 1 peak in 60 results in a drop of just 1.7\%.
 }
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 paths <- pulse_example("RAW_original_")
 heart_rates <- PULSE(
   paths,
@@ -41,7 +41,7 @@ heart_rates <- PULSE(
   bandwidth   = 0.2,
   with_progress = TRUE
   )
-# End prepare data ----
+## End prepare data ----
 
 # Single window (more detail)
 # using a target date and time
@@ -54,6 +54,47 @@ pulse_plot_raw(heart_rates, "limpet_1", "2022-12-29 13:55", 2)
 
 # The plot can be modified using ggplot2 syntax
 pulse_plot_raw(heart_rates, "limpet_1", target_i = 5) + ggplot2::theme_classic()
+
+# Use it to inspect if the windows where heart beat frequency
+#  was suspected to be double the real value were correctly handled
+doubles <- dplyr::filter(heart_rates, d_r == 1) # 4 rows
+
+pulse_plot_raw(doubles, "limpet_4", target_i = 1)
+# only 3 out of 4 peaks were detected, which is to be expected given
+#  the big drop in the signal midway through the window
+# --> this hz estimate isn't accurate
+
+pulse_plot_raw(doubles, "limpet_4", target_i = 2)
+# 4 consecutive peaks detected and properly spaced
+# --> this hz estimate is accurate
+
+pulse_plot_raw(doubles, "limpet_4", target_i = 3)
+# 4 consecutive peaks detected and properly spaced
+# NOTE THAT EVEN THOUGH THE PEAKS DETECTED ARE SLIGHTLY SHIFTED
+#  FROM THE SIGNAL PEAKS, they are properly spaced (matching the
+#  signal's frequency)
+# --> this hz estimate is still accurate
+
+pulse_plot_raw(doubles, "limpet_4", target_i = 4)
+# this window captured mostly just noise,
+# --> this hz estimate is meaningless
+
+# Now note that the column 'keep' already signaled correctly
+#  which of these 4 windows should be kept and which should
+#  be discarded.
+# In any case, if upon inspection one reaches a different
+#  conclusion, the column 'keep' can be modified accordingly
+
+# just as an example, let's change the value of 'keep'
+#  corresponding to row 4 in doubles
+target <- 4
+
+# first we find the corresponding row in heart_rates
+i <- which(
+heart_rates$i == doubles$i[target] &
+heart_rates$id == doubles$id[target])
+
+heart_rates$keep[i] <- TRUE # was FALSE but now is TRUE
 }
 \seealso{
 \itemize{

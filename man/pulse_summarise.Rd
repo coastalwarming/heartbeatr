@@ -6,43 +6,46 @@
 \usage{
 pulse_summarise(
   heart_rates,
+  norm = FALSE,
   fun = stats::median,
   span_mins = 10,
   min_data_points = 2
 )
 }
 \arguments{
-\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} or \code{\link[=pulse_heart]{pulse_heart()}}}
+\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}}, \code{\link[=pulse_heart]{pulse_heart()}} or \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}.}
+
+\item{norm}{Logical indicating if the summarsing should be based on the raw Hz estimate (\code{FALSE}) or the normalized frequency (\code{TRUE}); note that this feature can only be used if the dataset has been processed with \code{\link[=pulse_normalize]{pulse_normalize()}} first; defaults to \code{FALSE}.}
 
 \item{fun}{A function to summarise each new time window (defaults to \code{median}, which provides a good summary if all estimates are good while also minimizing the impact of spurious \emph{not-so-good} estimates). If using a custom function, ensure that the function takes a vector of \code{numeric} values and outputs a single \code{numeric} value.}
 
-\item{span_mins}{A numeric value expressing the width of the new summarizing windows (in \code{mins}, defaults to \code{10})}
+\item{span_mins}{An integer expressing the width of the new summary windows (in \code{mins}, defaults to \code{10})}
 
-\item{min_data_points}{A numeric value indicating the minimum number of data points in each new summarizing window. Windows covering less data points are discarded. Defaults to \code{2}, but if set to \code{0} (zero) no window is discarded.}
+\item{min_data_points}{A numeric value indicating the minimum number of data points in each new summarizing window. Windows covering less data points are discarded. Defaults to \code{2}. If set to \code{0} (zero), no window is ever discarded.}
 }
 \value{
-A similar tibble as the one provided in \code{heart_rates}, but without the \code{data} column (raw data is no longer available) and with less rows. IMPORTANT NOTE: The column \code{sd} now represents the standard deviation of all heartbeat rate estimates within each summarizing window (and not the standard deviation of the intervals between each identified wave peak, as was the case in \code{heart_rates}).
+A similar tibble as the one provided for input, but fewer columns and rows. Among the columns now absent is the \code{data} column (raw data is no longer available). IMPORTANT NOTE: Despite retaining the same names, several columns present in the output now provide slightly different information (because they are recalculated for each summarizing window): \code{time} corresponds to the first time stamp of the summarizing window; \code{n} shows the number of valid original windows used by the summary function; \code{sd} represents the standard deviation of all heartbeat rate estimates within each summarizing window (and not the standard deviation of the intervals between each identified wave peak, as was the case in \code{heart_rates}); \code{ci} is the confidence interval of the new value for \code{hz}.
 }
 \description{
-Take the output from \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}) and summarise \code{hz} estimates over new user-defined time windows using \code{fun} (a summary function). In effect, this procedure reduces the number of data points available over time.
+Take the output from \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}) and summarise \code{hz} estimates over new user-defined time windows using \code{fun} (a summary function). In effect, this procedure reduces the number of data points available over time.
 
-Note that the output of \code{pulse_summarise()} can be inspected with \code{\link[=pulse_plot]{pulse_plot()}} but not \code{pulse_plot_raw()}.
+Note that the output of \code{pulse_summarise()} can be inspected with \code{\link[=pulse_plot]{pulse_plot()}} but not \code{\link[=pulse_plot_raw]{pulse_plot_raw()}}.
 }
 \section{Details}{
 
-The PULSE multi-channel system captures data continuously. When processing those data, users should aim to obtain estimates of heartbeat rate at a frequency that conforms to their system's natural temporal variability, or risk running into oversampling (which has important statistical implications and must be avoided or explicitly handled).
+The PULSE multi-channel system captures data continuously. When processing those data, users should aim to obtain estimates of heart beat frequency at a rate that conforms to their system's natural temporal variability, or risk running into oversampling (which has important statistical implications and must be avoided or explicitly handled).
 
 With this in mind, users can follow two strategies:
 
 \emph{If, for example, users are targeting 1 data point every 5 mins...}
 \itemize{
-\item If the raw data is of good quality (i.e., minimal noise, signal wave with large amplitude), users can opt for a relatively narrow split_window (e.g, by setting \code{window_width_secs} in \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_split]{pulse_split()}}) to \code{30} secs) and to only sample split_windows every 5 mins with \code{window_shift_secs = 300}. This means that data is processed in 5-mins split-windows where 30 secs of data are used and four and a half mins of data are skipped, yielding our target of 1 data point every 5 mins. Doing so will greatly speed up the processing of the data (less windows to work on), and the final output will immediately have the desired sample frequency. On the other hand, if any of the split_windows effectively analysed features a gap in the data or happens to coincide with the occasional drop in signal quality, those estimates of heartbeat rate will reflect that lack of quality (even if \emph{better} data may be present in the four and a half mins of skipped data). This strategy is usually used at the beginning to assess the dataset, and depending on the results the more time-consuming strategy described next may or may not be used instead.
-\item If sufficient computing power is available and/or the raw data can't be guaranteed to be high quality from beginning to end, users can opt for a strategy that scans the entire dataset without skipping any data. This can be achieved by setting \code{window_width_secs} and \code{window_shift_secs} in \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_split]{pulse_split()}}) to the same value. In this case, if both parameters are set to \code{30} secs, processing will take significantly longer and each 5 mins of data will result in \code{10} data points. Then, \code{pulse_summarise} can be used with \code{span_mins = 5} to summarise the data points back to the target sample frequency. More importantly, if the right summary function is used, this strategy can greatly reduce the negative impact of spurious \emph{bad} readings. For example, setting \code{fun = median}, will reduce the contribution of values of \code{hz} that deviate from the center ("wrong" values) to the final heartbeat estimate for a given time window). Thus, if the computational penalty is bearable, this more robust strategy can prove useful.
+\item If the raw data is of good quality (i.e., minimal noise, signal wave with large amplitude), users can opt for a relatively narrow split_window (e.g, by setting \code{window_width_secs} in \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_split]{pulse_split()}}) to \code{30} secs) and to only sample split_windows every 5 mins with \code{window_shift_secs = 300}. This means that data is processed in 5-mins split-windows where 30 secs of data are used and four and a half mins of data are skipped, yielding our target of 1 data point every 5 mins. Doing so will greatly speed up the processing of the data (less and smaller windows to work on), and the final output will immediately have the desired sample frequency. On the other hand, if any of the split_windows effectively analysed features a gap in the data or happens to coincide with the occasional drop in signal quality, those estimates of heartbeat rate will reflect that lack of quality (even if \emph{better} data may be present in the four and a half mins of data that is being skipped). This strategy is usually used at the beginning to assess the dataset, and depending on the results, the more time-consuming strategy described next may have to be used instead.
+\item If sufficient computing power is available and/or the raw data can't be guaranteed to be high quality from beginning to end, users can opt for a strategy that scans the entire dataset without skipping any data. This can be achieved by setting \code{window_width_secs} and \code{window_shift_secs} in \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_split]{pulse_split()}}) to the same low value. In this case, if both parameters are set to \code{30} secs, processing will take significantly longer and each 5 mins of data will result in \code{10} data points. Then, \code{pulse_summarise} can be used with \code{span_mins = 5} to summarise the data points back to the target sample frequency. More importantly, if the right summary function is used, this strategy can greatly reduce the negative impact of spurious \emph{bad} readings. For example, setting \code{fun = median}, will reduce the contribution of values of \code{hz} that deviate from the center ("wrong" values) to the final heartbeat estimate for a given time window). Thus, if the computational penalty is bearable, this more robust strategy can prove useful.
 }
 }
 
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 paths <- pulse_example("RAW_original_")
 heart_rates <- PULSE(
   paths,
@@ -54,10 +57,10 @@ heart_rates <- PULSE(
   bandwidth   = 0.2,
   with_progress = TRUE
   )
-# End prepare data ----
+## End prepare data ----
 
 # Summarise heartbeat estimates (1 data point every 5 mins)
-nrow(heart_rates) # == 95
+nrow(heart_rates) # == 96
 nrow(pulse_summarise(heart_rates, span_mins = 5)) # == 20
 pulse_summarise(heart_rates, span_mins = 5)
 
@@ -79,7 +82,7 @@ pulse_plot(pulse_summarise(heart_rates, span_mins = 5), smooth = FALSE)
 }
 \seealso{
 \itemize{
-\item \code{\link[=pulse_heart]{pulse_heart()}} is the function that generates the input for \code{pulse_summarise}
+\item \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the functions that generate the input for \code{pulse_summarise}
 \item \code{\link[=pulse_plot]{pulse_plot()}} can be called to visualize the output from \code{pulse_summarise}
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once, and its output can also be passed on to \code{pulse_summarise}
 }

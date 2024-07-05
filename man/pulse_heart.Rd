@@ -4,18 +4,30 @@
 \alias{pulse_heart}
 \title{Determine the heartbeat rate in all channels of a split PULSE object (\verb{STEP 4})}
 \usage{
-pulse_heart(pulse_data_split, with_progress = NULL, msg = TRUE)
+pulse_heart(
+  pulse_data_split,
+  N = 3,
+  SD = 0.5,
+  with_progress = NULL,
+  msg = TRUE
+)
 }
 \arguments{
-\item{pulse_data_split}{The output of \code{\link[=pulse_split]{pulse_split()}}, i.e., a list with PULSE data split across time windows, each window being a subset of \code{pulse_data} (a tibble with at least 2 columns (time + one or more channels) containing PULSE data with timestamps within that time window)}
+\item{pulse_data_split}{The output of \code{\link[=pulse_split]{pulse_split()}}, i.e., a tibble with three columns: $\code{i}, a numeric vector with the order indexes of each time window, $\code{smoothed}, a logical indicating if the data has been smoothed, and $\code{data}, a list with PULSE data split across time windows, each window being a subset of \code{pulse_data} (a tibble with at least 2 columns (time + one or more channels) containing PULSE data with timestamps within that time window)}
+
+\item{N}{Minimum number of peaks detected in each time window for it to be considered a "keep" (defaults to \code{3})}
+
+\item{SD}{Maximum value for the sd of the time intervals between each peak detected for it to be considered a "keep" (defaults to \code{0.5})}
 
 \item{with_progress}{One of \code{TRUE}, \code{FALSE} or \code{NULL} (default) to choose whether to show progress bars or not (based on the \code{progressr} package). \code{TRUE} prints a \code{cli}-style progress bar; \code{FALSE} disables progress bars altogether; if set to \code{NULL}, the behavior is controlled by the user from outside this function (by setting the desired \code{handlers()}; in addition, setting \code{handlers(global = TRUE)} ensures the same behavior is used across the entire session).}
 
 \item{msg}{A logical to decide if non-crucial messages (but not errors) are shown (defaults to \code{TRUE}; mainly for use from within the wrapper function \code{PULSE()}, where it is set to \code{FALSE} to avoid the repetition of identical messages)}
 }
 \value{
-A tibble with nrows = (number of channels) * (number of windows in \code{pulse_data_split}) and 6 columns:
+A tibble with nrows = (number of channels) * (number of windows in \code{pulse_data_split}) and 10 columns:
 \itemize{
+\item \code{i}, index of each time window's order
+\item \code{smoothed}, whether the data has been smoothed with \code{\link[=pulse_smooth]{pulse_smooth()}}
 \item \code{id}, PULSE channel IDs
 \item \code{time}, time at the center of each time window
 \item \code{data}, a list of tibbles with raw PULSE data for each combination of channel and window, with columns \code{time}, \code{val} and \code{peak} (\code{TRUE} in rows corresponding to wave peaks)
@@ -23,6 +35,7 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \code{sd},  standard deviation of the intervals between wave peaks
 \item \code{hz},  heartbeat rate estimate (in Hz)
 \item \code{ci},  confidence interval (hz ± ci)
+\item \code{keep}, whether \code{n} and \code{sd} are within the target thresholds
 }
 }
 \description{
@@ -31,12 +44,12 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \verb{step 2} -- \code{\link[=pulse_split]{pulse_split()}}
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
 \item \strong{\verb{-->>} step 4 -- \code{\link[=pulse_heart]{pulse_heart()}} \verb{<<--}}
-\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
+\item \verb{step 5} -- \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}
 }
 
 For each combination of channel and time window, determine the heartbeat rate automatically.
 
-\code{pulse_heart()} takes the output from a call to \code{pulse_optimize()} (or \code{pulse_split()} if optimization is skipped - highly discouraged) and employs an algorithm optimized for the identification of wave peaks in noisy data to determine the heartbeat rate in all channels of the PULSE dataset.
+\code{pulse_heart()} takes the output from a call to \code{pulse_optimize()} (or \code{pulse_split()} if optimization is skipped, but that is highly discouraged) and employs an algorithm optimized for the identification of wave peaks in noisy data to determine the heart beat frequency in all channels of the PULSE dataset.
 }
 \section{BPM}{
 
@@ -44,7 +57,7 @@ To convert to Beats Per Minute, simply multiply \code{hz} and \code{ci} by 60.
 }
 
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 pulse_data_sub <- pulse_data
 pulse_data_sub$data <- pulse_data_sub$data[,1:5]
 pulse_data_split <- pulse_split(
@@ -53,8 +66,8 @@ pulse_data_split <- pulse_split(
    window_shift_secs = 60,
    min_data_points = 0.8,
    with_progress = TRUE)
-pulse_data_split <- pulse_optimize(pulse_data_split)
-# End prepare data ----
+pulse_data_split <- pulse_optimize(pulse_data_split, raw_v_smoothed = TRUE)
+## End prepare data ----
 
 # Determine heartbeat rates in all channels in all time window
 pulse_heart(pulse_data_split)
@@ -64,7 +77,7 @@ pulse_heart(pulse_data_split)
 \item check \code{\link[progressr:handlers]{progressr::handlers()}} to customize the reporting of progress
 \item check \code{\link[future:plan]{future::plan()}} to optimize parallel processing
 \item \code{\link[=pulse_find_peaks_all_channels]{pulse_find_peaks_all_channels()}} runs \code{\link[=pulse_find_peaks_one_channel]{pulse_find_peaks_one_channel()}} on all PULSE channels
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}} and \code{\link[=pulse_optimize]{pulse_optimize()}} are the other functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the other functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
 \item \code{\link[=pulse_summarise]{pulse_summarise()}} can be used to reduce the number of data points returned
 }

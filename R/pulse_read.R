@@ -3,8 +3,7 @@ pulse_read_version <- function(path) {
     readr::read_lines(n_max = 50) %>%
     stringr::str_to_lower() %>%
     stringr::str_subset("pulse version") %>%
-    stringr::str_replace_all("[^0-9.]", "") %>%
-    as.numeric()
+    stringr::str_replace_all("[^0-9.]", "")
 }
 
 pulse_read_freq <- function(path) {
@@ -20,6 +19,7 @@ pulse_read_channels <- function(path) {
   path %>%
     readr::read_lines(n_max = 50) %>%
     stringr::str_to_lower() %>%
+    stringr::str_remove("\n") %>%
     stringr::str_subset(pattern = "^s[:digit:]{1,2},") %>%
     stringr::str_split(",") %>%
     purrr::map_chr(2)
@@ -36,10 +36,12 @@ pulse_read_data <- function(path, skip, cols, multi = TRUE) {
   if (multi) {
     lines <- path %>%
       readr::read_lines(skip = skip + 1) %>%
-      stringr::str_split(",")
+      stringr::str_remove("\n")
+    lines <- lines[lines != ""]
+    lines <- stringr::str_split(lines, ",")
 
     # check that timestamps have the correct length
-    valid1 <- purrr::map_lgl(lines, ~nchar(.x[1]) == 23)
+    valid1 <- purrr::map_lgl(lines, ~nchar(.x[1]) > 10)
 
     # check that lines have the correct number of elements
     valid2 <- purrr::map_lgl(lines, ~length(.x) == if (multi) 11 else 2)
@@ -53,13 +55,12 @@ pulse_read_data <- function(path, skip, cols, multi = TRUE) {
     colnames(data) <- c("time", cols)
 
     data <- data %>%
-      dplyr::mutate(time = as.POSIXct(time)) %>%
+      dplyr::mutate(time = as.POSIXct(time, tz = "UTC")) %>%
       dplyr::mutate(dplyr::across(-time, ~as.numeric(.x)))
 
-    # return
-    data
+    return(data)
   } else {
-    stop("currently only 'multi = TRUE' is supported")
+    stop("  --> [i] currently only 'multi = TRUE' is supported")
   }
 }
 
@@ -79,8 +80,6 @@ add_line <- function(msg1, msg2) {
 #'
 #' @export
 #'
-#' @examples
-#' _
 pulse_read_checks <- function(paths) {
   ok  <- FALSE
   out <- list()
@@ -119,9 +118,8 @@ pulse_read_checks <- function(paths) {
           # this is done by ensuring that the names of the channels are
           #   the same in all files, as well as 'Rate_Hz' and the number of
           #   lines in the header
-          cols <- paths %>%
-            purrr::map(pulse_read_channels)
-          COLS <- stringr::str_c("c", seq_along(cols[[1]]))
+          cols <- purrr::map(paths, pulse_read_channels)
+          COLS <- stringr::str_c("c", 1:length(cols[[1]]))
           cols <- do.call(rbind, cols)
           colnames(cols) <- COLS
           cols <- cols %>%
@@ -129,19 +127,24 @@ pulse_read_checks <- function(paths) {
             dplyr::distinct()
           freq <- purrr::map_dbl(paths, pulse_read_freq) %>% unique()
           skip <- purrr::map_dbl(paths, pulse_read_skip) %>% unique()
-          vrsn <- purrr::map_dbl(paths, pulse_read_version) %>% unique()
+          vrsn <- purrr::map_chr(paths, pulse_read_version) %>% unique()
 
           lgl_cols <- nrow(cols)   != 1
           lgl_freq <- length(freq) != 1
           lgl_skip <- length(skip) != 1
           lgl_vrsn <- length(vrsn) != 1
 
-          if (lgl_cols | lgl_freq | lgl_skip | lgl_vrsn) {
+          min_vrsn <- 2.1
+          vrsn_min <- vrsn[which.min(as.numeric(vrsn))]
+          old_vrsn <- as.numeric(vrsn_min) < min_vrsn
+
+          if (lgl_cols | lgl_freq | lgl_skip | lgl_vrsn | old_vrsn) {
             msg <- "\n  --> [x] found differences in the headers across the PULSE CSV files\n  --> [i] inconsistencies detected:"
             if (lgl_cols) msg <- stringr::str_c(msg, "\n           - names of the channels (even unused channels must match)")
             if (lgl_freq) msg <- stringr::str_c(msg, "\n           - sampling rate 'Rate_Hz' ")
-            if (lgl_skip) msg <- stringr::str_c(msg, "\n           - number of lines of the headers")
-            if (lgl_vrsn) msg <- stringr::str_c(msg, "\n           - PULSE system versions")
+            if (lgl_skip) msg <- stringr::str_c(msg, "\n           - number of lines in headers")
+            if (lgl_vrsn) msg <- stringr::str_c(msg, "\n           - multiple PULSE system versions (detected = ", stringr::str_c(vrsn, collapse = ", "), ")")
+            if (old_vrsn) msg <- stringr::str_c(msg, "\n           - unsupported PULSE system versions (detected = ", vrsn_min, ", min = ", min_vrsn, ")")
             msg <- stringr::str_c(msg, "\n  --> [?] are you sure that all files originated from a single experiment?\n  --> [i] if yes, edit the headers manually to fix all inconsistencies and re-run the code")
           } else {
 
@@ -168,8 +171,6 @@ pulse_read_checks <- function(paths) {
       }
     }
   }
-
-  # return
   list(ok = ok, msg = msg, out = out)
 }
 
@@ -180,7 +181,7 @@ pulse_read_checks <- function(paths) {
 #' * `step 2` -- [`pulse_split()`]
 #' * `step 3` -- [`pulse_optimize()`]
 #' * `step 4` -- [`pulse_heart()`]
-#' * `step 5` -- [`pulse_check()`]
+#' * `step 5` -- [`pulse_doublecheck()`]
 #'
 #' Importing data from PULSE `'.csv'` files is the first step of the analysis of PULSE data.
 #'
@@ -190,9 +191,12 @@ pulse_read_checks <- function(paths) {
 #' @param with_progress One of `TRUE`, `FALSE` or `NULL` (default) to choose whether to show progress bars or not (based on the `progressr` package). `TRUE` prints a `cli`-style progress bar; `FALSE` disables progress bars altogether; if set to `NULL`, the behavior is controlled by the user from outside this function (by setting the desired `handlers()`; in addition, setting `handlers(global = TRUE)` ensures the same behavior is used across the entire session).
 #' @param msg A logical to decide if non-crucial messages (but not errors) are shown (defaults to `TRUE`; mainly for use from within the wrapper function `PULSE()`, where it is set to `FALSE` to avoid the repetition of identical messages)
 #'
+#' @section Time zones:
+#' PULSE systems **ALWAYS** record data using **UTC +0**. This is intentional! If data were to be recorded using local time zones, issues with daylight saving time, leap seconds, etc. could spoil the dataset. Worse, should the information about which time zone had been used get lost or accidentally modified, the validity of the entire dataset could be compromised. By always using UTC +0 all these issues are minimized and the processing pipeline becomes vastly easier and more efficient. Still, this means that after the data has been processed using the [`heartbeatr-package`], the user may need to adjust the time zone of all timestamps so that the timing matches other information relative to the experiment.
+#'
 #' @seealso
 #'  * check [progressr::handlers()] to customize the reporting of progress
-#'  * [pulse_split()], [pulse_optimize()] and [pulse_heart()] are the other functions needed for the complete PULSE processing workflow
+#'  * [pulse_split()], [pulse_optimize()], [pulse_heart()] and [pulse_doublecheck()] are the other functions needed for the complete PULSE processing workflow
 #'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once
 #'
 #' @return
@@ -203,9 +207,9 @@ pulse_read_checks <- function(paths) {
 #' @export
 #'
 #' @examples
-#' # Begin prepare data ----
+#' ## Begin prepare data ----
 #' paths <- pulse_example("RAW_original_")
-#' # End prepare data ----
+#' ## End prepare data ----
 #'
 #' pulse_read(paths, with_progress = TRUE)
 pulse_read <- function(paths, with_progress = NULL, msg = TRUE) {
@@ -245,5 +249,6 @@ pulse_read <- function(paths, with_progress = NULL, msg = TRUE) {
     dplyr::arrange(time)
 
   # return
-  list(data = pulse_data, freq = freq)
+  pulse_data <- list(data = pulse_data, freq = freq)
+  return(pulse_data)
 }

@@ -7,16 +7,16 @@
 pulse_find_peaks_all_channels(split_window)
 }
 \arguments{
-\item{split_window}{One element of \code{pulse_data_split} (\code{pulse_data_split} is the output of \code{pulse_split()}).}
+\item{split_window}{One element of \code{pulse_data_split} (which is the output from \code{pulse_split()}).}
 }
 \value{
 A tibble with up to 10 rows (one for each channel) and 6 columns:
 \itemize{
 \item \code{id}, PULSE channel IDs
 \item \code{time}, time at the center of split_window_one_channel$time
-\item \code{data}, a list of tibbles with raw PULSE data for each combination of channel and window, with columns \code{time}, \code{val} and \code{peak} (\code{TRUE} in rows corresponding to wave peaks)
+\item \code{data}, a list of tibbles with raw PULSE data for each combination of channel and window, with columns \code{time}, \code{val} and \code{peak} (\code{TRUE} when data points correspond to wave peaks)
 \item \code{n},   number of wave peaks identified
-\item \code{sd},  standard deviation of the intervals between wave peaks
+\item \code{sd},  standard deviation of the intervals between wave peaks (normalized)
 \item \code{hz},  heartbeat rate estimate (in Hz)
 \item \code{ci},  confidence interval (hz ± ci)
 }
@@ -30,7 +30,7 @@ To convert to Beats Per Minute, simply multiply \code{hz} and \code{ci} by 60.
 }
 
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 pulse_data_sub <- pulse_data
 pulse_data_sub$data <- pulse_data_sub$data[,1:5]
 pulse_data_split <- pulse_split(
@@ -40,8 +40,8 @@ pulse_data_split <- pulse_split(
    min_data_points = 0.8,
    with_progress = TRUE)
 pulse_data_split <- pulse_optimize(pulse_data_split)
-split_window <- pulse_data_split[[1]]
-# End prepare data ----
+split_window <- pulse_data_split$data[[1]]
+## End prepare data ----
 
 # Determine heartbeat rates in all channels in one time window
 pulse_find_peaks_all_channels(split_window)

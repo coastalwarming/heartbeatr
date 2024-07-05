@@ -1,9 +1,9 @@
 Package: heartbeatr
 Type: Package
 Title: A Workflow to Process Data Collected with PULSE Systems (Electricblue.eu)
-Version: 0.0.0.9100
+Version: 0.0.0.9200
 Authors@R: c(
-    person("Rui", "Seabra", , "ptruimar@gmail.com", role = c("aut", "cre"),
+    person("Rui", "Seabra", , "ruisea@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0240-3992")),
     person("Fernando", "Lima", , "fplima@gmail.com", role = c("aut"),
            comment = c(ORCID = "0000-0001-9575-9834"))
@@ -12,8 +12,9 @@ Description: Given one or multiple paths to files produced by a PULSE multi-chan
     system (electricblue.eu/pulse) from a single experiment:
     [1] check pulse files for inconsistencies and read/merge all data,
     [2] split across time windows,
-    [3] interpolate and smooth to optimize the raw data,
-    [4] compute the heart rate frequency for each channel/window.
+    [3] interpolate and smooth to optimize the dataset,
+    [4] compute the heart rate frequency for each channel/window,
+    [5] facilitate quality control, summarising and plotting.
     Heart rate frequency is calculated using the XXXX algorithm.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -39,6 +40,6 @@ Imports:
     tidyr,
     transformr
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5.0)
 RoxygenNote: 7.3.1
 Roxygen: list(markdown = TRUE)

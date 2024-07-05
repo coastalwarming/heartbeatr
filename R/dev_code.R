@@ -1,7 +1,7 @@
 if (FALSE) {
 	### basic dev cycle
 	load_all()
-	document()
+	document() # also generates the namespace file
 	check()
 	install()
 
@@ -56,14 +56,6 @@ if (FALSE) {
 
 	### GENERATE EXAMPLE DATA
 	# run code in "data-raw/pulse_data.R"
-
-	### GENERATE EXAMPLE DATA (OUTDATED)
-	# paths <- fs::path_package("inst", extdata", "limpets", package = "heartbeatr") %>% dir(full.names = TRUE)
-	# paths <- fs::path_package("inst", "extdata", "limpets", package = "heartbeatr") %>% dir(full.names = TRUE, pattern = ".csv", ignore.case = TRUE)
-	# paths <- fs::path_package("inst", "extdata", "limpets", package = "heartbeatr") %>% dir(full.names = TRUE, pattern = ".csv", ignore.case = TRUE) %>% stringr::str_subset("Pulse123", negate = TRUE)
-	# pulse_read(paths[c(7,8)])
-	# data <- pulse_read(folder)
-	# save(data, fs::path_package("inst", "extdata", "limpets", package = "heartbeatr"))
 
 	### CONFIGURE GITHUB USER ON RSTUDIO (R)
 	# use_git_config(user.name = "ruiseabra", user.email = "ruisea@gmail.com")

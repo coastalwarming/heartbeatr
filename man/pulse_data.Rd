@@ -11,12 +11,6 @@ A list with two elements:
 \itemize{
 \item \verb{$data}, a tibble with 29,978 rows and 11 columns - one column with timestamps (named \code{time}) and several columns of numeric data (the voltage readings from each channel of the PULSE multi-channel system; all channels with unique names)
 \item \verb{$freq}, a single integer value representing the sampling frequency used (in Hz)
-\describe{
-\item{time}{timestamp}
-\item{limpet_1-limpet_4}{voltage readings}
-\item{S5-S10}{unused channels}
-...
-}
 }
 }
 }
@@ -24,6 +18,6 @@ A list with two elements:
 pulse_data
 }
 \description{
-A subset of data from an experiment monitoring the heartbeat of four 'Patella vulgata' limpets (channels S5-S10 were not monitored)
+A subset of data from an experiment monitoring the heartbeat of four \emph{Patella vulgata} limpets (channels S5-S10 were not monitored)
 }
 \keyword{datasets}

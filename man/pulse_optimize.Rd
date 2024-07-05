@@ -4,17 +4,24 @@
 \alias{pulse_optimize}
 \title{Optimize PULSE data through interpolation and smoothing (\verb{STEP 3})}
 \usage{
-pulse_optimize(pulse_data_split, interpolation_freq = 40, bandwidth = 0.2)
+pulse_optimize(
+  pulse_data_split,
+  interpolation_freq = 40,
+  bandwidth = 0.2,
+  raw_v_smoothed = FALSE
+)
 }
 \arguments{
-\item{pulse_data_split}{The output of \code{\link[=pulse_split]{pulse_split()}}, i.e., a list with PULSE data split across time windows, each window being a subset of \code{pulse_data} (a tibble with at least 2 columns (time + one or more channels) containing PULSE data with timestamps within that time window)}
+\item{pulse_data_split}{The output of \code{\link[=pulse_split]{pulse_split()}}, i.e., a tibble with three columns: $\code{i}, a numeric vector with the order indexes of each time window, $\code{smoothed}, a logical indicating if the data has been smoothed, and $\code{data}, a list with PULSE data split across time windows, each window being a subset of \code{pulse_data} (a tibble with at least 2 columns (time + one or more channels) containing PULSE data with timestamps within that time window)}
 
 \item{interpolation_freq}{A numeric value expressing the frequency (in Hz) to which PULSE data should be interpolated. Can be set to \code{0} (zero) or any value equal or greater than \code{40} (the default). If set to zero, no interpolation is performed.}
 
 \item{bandwidth}{A numeric value expressing the bandwidth. If equal to \code{0} (zero) no smoothing is applied. Ideally kept low (defaults to \code{0.2}) so that only very high frequency noise is removed, but can be pushed up all the way to \code{1} or above (especially when the heartbeat rate is expected to be slow, as is typical of oysters, but double check the resulting data). Type \code{?ksmooth} for additional info.}
+
+\item{raw_v_smoothed}{Logical. If set to \code{FALSE} (default), the output includes only one list obtained after applying interpolation and smoothing according to the values set. If set to \code{TRUE}, a list with two lists is returned, one after applying only interpolation (i.e., "raw"), and the other after applying both interpolation and smoothing (i.e, "smoothed"). Mostly used for supplying downstream functions with more robust information.}
 }
 \value{
-The list with PULSE data split across time windows supplied in \code{pulse_data_split}, but now with data in each list element interpolated to \code{interpolation_freq} (i.e., with more data points) and channels smoothed.
+The same structure as the input data, which is a tibble with three columns, but now with the values on column $\code{smoothed} switched to \code{TRUE} if smoothing was applied and the contents of column $\code{data} modified in accordance with the parameters called. If \code{raw_v_smoothed} is \code{FALSE}, the tibble returned will have the same number of rows as the input tibble. If \code{raw_v_smoothed} is \code{TRUE}, the tibble returned will have twice the number of rows as the input tibble, with half not smoothed (i.e., only interpolation applied), the other half smoothed (i.e., interpolation and smoothing applied) and the order indexes in $\code{i} duplicated. Downstream functions will process both types of output automatically.
 }
 \description{
 \itemize{
@@ -22,7 +29,7 @@ The list with PULSE data split across time windows supplied in \code{pulse_data_
 \item \verb{step 2} -- \code{\link[=pulse_split]{pulse_split()}}
 \item \strong{\verb{-->>} step 3 -- \code{\link[=pulse_optimize]{pulse_optimize()}} \verb{<<--}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
-\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
+\item \verb{step 5} -- \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}
 }
 
 IMPORTANT NOTE: \code{pulse_optimize()} can be skipped, but that is highly discouraged.
@@ -34,7 +41,7 @@ The performance of the algorithm employed in the downstream function \code{pulse
 }
 }
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 pulse_data_sub <- pulse_data
 pulse_data_sub$data <- pulse_data_sub$data[,1:5]
 pulse_data_split <- pulse_split(
@@ -43,7 +50,7 @@ pulse_data_split <- pulse_split(
    window_shift_secs = 60,
    min_data_points = 0.8,
    with_progress = TRUE)
-# End prepare data ----
+## End prepare data ----
 
 # Optimize data by interpolating to 40 Hz and applying a slight smoothing
 pulse_optimize(pulse_data_split, 40, 0.2)
@@ -52,8 +59,8 @@ pulse_optimize(pulse_data_split, 40, 0.2)
 \itemize{
 \item \code{\link[=approx]{approx()}} is used by \code{\link[=pulse_interpolate]{pulse_interpolate()}} for the linear interpolation of PULSE data
 \item \code{\link[=ksmooth]{ksmooth()}} is used by \code{\link[=pulse_smooth]{pulse_smooth()}} for the kernel smoothing of PULSE data
-\item \code{\link[=pulse_optimize]{pulse_optimize()}} is a wrapper function that executes \code{pulse_interpolate} and \code{pulse_smooth} sequentially
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}} and \code{\link[=pulse_heart]{pulse_heart()}} are the other functions needed for the complete PULSE processing workflow
+\item \code{pulse_optimize} is a wrapper function that executes \code{pulse_interpolate} and \code{pulse_smooth} sequentially
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the other functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
 }
 }

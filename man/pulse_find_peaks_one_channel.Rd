@@ -2,7 +2,7 @@
 % Please edit documentation in R/pulse_heart.R
 \name{pulse_find_peaks_one_channel}
 \alias{pulse_find_peaks_one_channel}
-\title{Determine the heartbeat rate in one PULSE channel}
+\title{Determine the heart beat frequency in one PULSE channel}
 \usage{
 pulse_find_peaks_one_channel(split_window_one_channel)
 }
@@ -24,7 +24,7 @@ A one-row tibble with 8 columns:
 Take data from one PULSE channel and identify the heartbeat wave peaks using an algorithm that searches for maxima across multiple scales.
 }
 \details{
-improved function from https://github.com/ig248/pyampd
+function builds upon code from https://github.com/ig248/pyampd
 }
 \section{BPM}{
 
@@ -32,7 +32,7 @@ To convert to Beats Per Minute, simply multiply \code{hz} and \code{ci} by 60.
 }
 
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 pulse_data_sub <- pulse_data
 pulse_data_sub$data <- pulse_data_sub$data[,1:5]
 pulse_data_split <- pulse_split(
@@ -42,18 +42,18 @@ pulse_data_split <- pulse_split(
    min_data_points = 0.8,
    with_progress = TRUE)
 pulse_data_split <- pulse_optimize(pulse_data_split)
-split_window <- pulse_data_split[[1]]
+split_window <- pulse_data_split$data[[1]]
 split_window_one_channel <- split_window[,1:2]
 colnames(split_window_one_channel) <- c("time", "val")
 # End prepare data ----
 
-# Determine heartbeat rates in one channel in one time window
+## Determine heartbeat rates in one channel in one time window
 pulse_find_peaks_one_channel(split_window_one_channel)
 }
 \seealso{
 \itemize{
 \item \code{\link[=pulse_find_peaks_all_channels]{pulse_find_peaks_all_channels()}} runs \code{pulse_find_peaks_one_channel} on all PULSE channels
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}} and \code{\link[=pulse_heart]{pulse_heart()}} are the functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
 }
 }

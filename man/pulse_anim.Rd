@@ -4,10 +4,12 @@
 \alias{pulse_anim}
 \title{Plot and animate PULSE data}
 \usage{
-pulse_anim(heart_rates, fps = 10, ID = NULL)
+pulse_anim(heart_rates, folder = NULL, fps = 10, ID = NULL)
 }
 \arguments{
-\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
+\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
+
+\item{folder}{A valid path to an existing folder where the file \code{anim.mp4} will be saved. If not provided, \code{anim.mp4} will be saved to the current work directory. In any case, the final path is always printed at the end.}
 
 \item{fps}{An integer representing the number of frames per second in the animation; defaults to \code{10}; more details below.}
 
@@ -17,21 +19,25 @@ pulse_anim(heart_rates, fps = 10, ID = NULL)
 An \code{.mp4} file is saved and its path printed to the console.
 }
 \description{
-A shortcut function based on \code{ggplot2} and \code{gganimate} to facilitate the quick inspection of the qualitity of the analysis (with the peaks detected signaled with red dots). Useful to visually inspect the performance of the algorithm.
+\strong{EXPERIMENTAL} - A shortcut function based on \code{ggplot2} and \code{gganimate} to facilitate the quick inspection of the quality of the analysis (with the peaks detected signaled with red dots). Useful to visually inspect the performance of the algorithm.
 }
 \details{
 This function is \strong{NOT meant} for high-level displaying of the data - it's simply a quick shortcut to facilitate data inspection.
+
+This function is \strong{EXPERIMENTAL}, and the resulting animation may not be correctly formatted in every machine - please be patient and provide constructive feedback.
+
+On a machine running MacOS, the animation movie can easily be inspected using \verb{QuickTime Player}.
 
 When inspecting the movie, go through each frame and assess if red dots top all heartbeats and no more than that. Additional info is displayed in the graph's title (such as sd). Difficult datasets may result in true heartbeats being missed or non-heartbeats (noise) being erroneously detected (false positives and/or false negatives). Note that the wider the time window (controlled by the \code{window_width_secs} parameter in \code{\link[=pulse_split]{pulse_split()}}) and the higher the heartbeat rate, the less critical are a few false positives or negatives (over a 10 secs window, missing 1 peak in 10 results in hz to drop by 10\% (from 1 to 0.9), while over a 30 secs window, missing 1 peak in 30 results in a drop of 3.33\% (from 1 to 0.967), and missing 1 peak in 60 results in a drop of just 1.7\%. With the animated plot, it becomes much quicker and easy to inspect the overall performance of the analysis over a large dataset.
 }
 \section{More on setting the right value for \code{fps}}{
 
-The default value of \code{10} generates a shorter video with 10 individual graphs displayed over 1 second. At this rate, the resulting animation file is smaller, the animation plays quicker and detailed inspection requires pausing the animation playback (but frame-by-frame ainspection is still possible). This is ideal for large datasets.
-Alternatively, lower values will result in each individual graph persisting in the animation for a longer period, making it easier to inspect without the need to hit pause and play so often. Naturaly, the file size will also be larger, and if the dataset is large then the animation may extend for a uncomfortably long period of time. A value of \code{1} will result in only one graph being shown over each second.
+The default value of \code{10} generates a shorter video with 10 individual graphs displayed over 1 second. At this rate, the resulting animation file is smaller, the animation plays quicker and detailed inspection requires pausing the animation playback (but frame-by-frame inspection is still possible). This is ideal for large datasets.
+Alternatively, lower values will result in each individual graph persisting in the animation for a longer period, making it easier to inspect without the need to hit pause and play so often. Naturaly, the file size will also be larger, and if the dataset is large then the animation may extend for an uncomfortably long period of time. A value of \code{1} will result in only one graph being shown over each second.
 }
 
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 paths <- pulse_example("RAW_original_")
 heart_rates <- PULSE(
   paths,
@@ -43,13 +49,18 @@ heart_rates <- PULSE(
   bandwidth   = 0.2,
   with_progress = TRUE
   )
-# End prepare data ----
+## End prepare data ----
+
+\dontrun{
 
 # data from only one channel
 pulse_anim(heart_rates, ID = "limpet_1")
 
 # all channels
-pulse_anim(heart_rates) # notice how quickly one can determine that only channel "limpet_1" has recorded good data
+pulse_anim(heart_rates)
+# notice how quickly one can inspect the entire dataset
+#  and determine that only channel "limpet_1" has recorded good data
+}
 }
 \seealso{
 \itemize{

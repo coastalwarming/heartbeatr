@@ -6,20 +6,22 @@
 \usage{
 PULSE(
   paths,
-  discard_channels = NULL,
   window_width_secs,
   window_shift_secs,
-  min_data_points,
+  min_data_points = 0.8,
   interpolation_freq = 40,
   bandwidth = 0.2,
+  N = 3,
+  SD = 0.5,
+  raw_v_smoothed = TRUE,
+  correct = TRUE,
   with_progress = NULL,
+  discard_channels = NULL,
   msg = TRUE
 )
 }
 \arguments{
 \item{paths}{File paths to CSV files produced by a PULSE system during a single experiment.}
-
-\item{discard_channels}{A string with the names of channels to be discarded from the analysis. \code{discard_channels} is forced to lowercase, but other than that, the \strong{exact} names must be provided. Discarding unused channels can greatly speed the workflow!}
 
 \item{window_width_secs}{A single numeric value indicating the width of the time windows (in seconds) over which heart rate frequency will later be computed.}
 
@@ -31,13 +33,25 @@ PULSE(
 
 \item{bandwidth}{A numeric value expressing the bandwidth. If equal to \code{0} (zero) no smoothing is applied. Ideally kept low (defaults to \code{0.2}) so that only very high frequency noise is removed, but can be pushed up all the way to \code{1} or above (especially when the heartbeat rate is expected to be slow, as is typical of oysters, but double check the resulting data). Type \code{?ksmooth} for additional info.}
 
+\item{N}{Minimum number of peaks detected in each time window for it to be considered a "keep" (defaults to \code{3})}
+
+\item{SD}{Maximum value for the sd of the time intervals between each peak detected for it to be considered a "keep" (defaults to \code{0.5})}
+
+\item{raw_v_smoothed}{Logical indicating whether or not to also compute heart rates before applying smoothing; this will increase the quality of the output but also double the processing time (defaults to \code{TRUE})}
+
+\item{correct}{Logical. If \code{FALSE}, data points with \code{hz} values likely double the real value are flagged \strong{BUT NOT CORRECTED}. If \code{TRUE}, \code{hz} (as well as \code{data}, \code{n}, \code{sd} and \code{ci}) are corrected accordingly. Note that the correction is not reversible! (defaults to \code{TRUE})}
+
 \item{with_progress}{One of \code{TRUE}, \code{FALSE} or \code{NULL} (default) to choose whether to show progress bars or not (based on the \code{progressr} package). \code{TRUE} prints a \code{cli}-style progress bar; \code{FALSE} disables progress bars altogether; if set to \code{NULL}, the behavior is controlled by the user from outside this function (by setting the desired \code{handlers()}; in addition, setting \code{handlers(global = TRUE)} ensures the same behavior is used across the entire session).}
+
+\item{discard_channels}{A string with the names of channels to be discarded from the analysis. \code{discard_channels} is forced to lowercase, but other than that, the \strong{exact} names must be provided. Discarding unused channels can greatly speed the workflow!}
 
 \item{msg}{A logical to decide if non-crucial messages (but not errors) are shown (defaults to \code{TRUE})}
 }
 \value{
-A tibble with nrows = (number of channels) * (number of windows in \code{pulse_data_split}) and 6 columns:
+A tibble with nrows = (number of channels) * (number of windows in \code{pulse_data_split}) and 13 columns:
 \itemize{
+\item \code{i}, the order of each time window
+\item \code{smoothed}, logical flagging smoothed data
 \item \code{id}, PULSE channel IDs
 \item \code{time}, time at the center of each time window
 \item \code{data}, a list of tibbles with raw PULSE data for each combination of channel and window, with columns \code{time}, \code{val} and \code{peak} (\code{TRUE} in rows corresponding to wave peaks)
@@ -45,8 +59,10 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \code{sd}, standard deviation of the intervals between wave peaks
 \item \code{hz}, heartbeat rate estimate (in Hz)
 \item \code{ci}, confidence interval (hz ± ci)
-\item \code{dbl_rat}, ratio of consecutive asymmetric peaks
-\item \code{dbl_mag}, magnitude of difference between the two groups of asymmetric peaks
+\item \code{keep}, logical indicating whether data points meet N and SD criteria
+\item \code{d_r}, ratio of consecutive asymmetric peaks
+\item \code{d_m}, magnitude of difference between the two groups of asymmetric peaks
+\item \code{d_f}, logical flagging data points where heart beat frequency is likely double the real value
 }
 }
 \description{
@@ -56,15 +72,15 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \verb{step 2} -- \code{\link[=pulse_split]{pulse_split()}}
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
-\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
+\item \verb{step 5} -- \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}
 \item \verb{extra step} -- \code{\link[=pulse_summarise]{pulse_summarise()}}
 }
 
-This is a wrapper function that provides a shortcut to running all 4 steps of the PULSE multi-channel data processing pipeline in sequence, namely \code{pulse_read()} >> \code{pulse_split()} >> \code{pulse_optimize()} >> \code{pulse_heart()}.
+This is a wrapper function that provides a shortcut to running all 5 steps of the PULSE multi-channel data processing pipeline in sequence, namely \code{pulse_read()} >> \code{pulse_split()} >> \code{pulse_optimize()} >> \code{pulse_heart()} >> \code{pulse_doublecheck()}.
 
-\strong{IMPORTANT NOTE}: \code{\link[=pulse_summarise]{pulse_summarise()}} is not included in \code{\link[=PULSE]{PULSE()}} because it isn't essential for the PULSE data processing pipeline. However, in many instances it's important to run the output from \code{\link[=PULSE]{PULSE()}} through \code{pulse_summarise()} before analysing the hearbeat rate data. This is because certain combinations of parameters may result in too many data points (leading to oversampling), a situation that can be resolved with \code{pulse_summarise()}. Be sure to check its help file (\code{?pulse_summarise}) before processing any large PULSE datasets, to understand the two main strategies that can be employed to handle oversampling and reduce sensitivity to pockets of poor-quality data across a dataset.
+\strong{IMPORTANT NOTE}: \code{\link[=pulse_summarise]{pulse_summarise()}} is not included in \code{\link[=PULSE]{PULSE()}} because it isn't essential for the PULSE data processing pipeline. However, in many instances it's important to run the output from \code{\link[=PULSE]{PULSE()}} through \code{pulse_summarise()} before analyzing the estimated heart beat frequencies. This is because certain combinations of parameters may result in too many data points (leading to oversampling), a situation that can be resolved with \code{pulse_summarise()}. Be sure to check its help file (\code{?pulse_summarise}) before processing any large PULSE datasets, to understand the two main strategies that can be employed to handle oversampling and reduce sensitivity to pockets of poor-quality data across a dataset.
 
-\code{PULSE()} takes a vector of \code{paths} to PULSE csv files produced by a PULSE multi-channel system during \strong{a single experiment} and automatically computes the heartbeat frequencies in all target channels across use-defined time windows. The entire workflow may take less than 5 minutes to run on a small dataset (a few hours of data) if (1) \code{params} are chosen with speed in mind, (2) parallel computing is enabled and (3) the code is run on a modern machine. Conversely, large datasets (spanning several days) may take hours or even days to run.
+\code{PULSE()} takes a vector of \code{paths} to PULSE csv files produced by a PULSE multi-channel system during \strong{a single experiment} and automatically computes the heartbeat frequencies in all target channels across use-defined time windows. The entire workflow may take less than 5 minutes to run on a small dataset (a few hours of data) if (1) \code{params} are chosen with speed in mind, (2) parallel computing is enabled and (3) the code is run on a modern machine. Conversely, large datasets (spanning several days) may take hours or even days to run. In extreme situations, datasets may be too large for the machine to handle (due to memory limitations), and one is better off processing batches at a time.
 }
 \section{One experiment}{
 
@@ -80,12 +96,13 @@ Note also that even if two PULSE systems have been used in the same \emph{scient
 
 \section{Additional details}{
 
-Check the helpfiles of the underlying functions to obtain additional details about each of the steps implemented under \code{PULSE()}, namely:
+Check the help files of the underlying functions to obtain additional details about each of the steps implemented under \code{PULSE()}, namely:
 \itemize{
-\item \code{\link[=pulse_read]{pulse_read()}} describes constraints to the type of files that can be read with the \code{\link{heartbeatr-package}}.
-\item \code{\link[=pulse_split]{pulse_split()}} provides important advice to set \code{window_width_secs} and \code{window_shift_secs}, and what to expect when lower/higher values are used.
+\item \code{\link[=pulse_read]{pulse_read()}} describes constraints to the type of files that can be read with the \code{\link{heartbeatr-package}} and explains how time zones are handled.
+\item \code{\link[=pulse_split]{pulse_split()}} provides important advice on how to set \code{window_width_secs} and \code{window_shift_secs}, what to expect when lower/higher values are used, and explains how easily to run the \code{\link{heartbeatr-package}} with parallel computing.
 \item \code{\link[=pulse_optimize]{pulse_optimize()}} explains in detail how the optimization process (interpolation + smoothing) behaves and how it impacts the performance of the analysis.
-\item \code{\link[=pulse_heart]{pulse_heart()}} outlines the algorithm used to robustely identify peaks in the heartbeat wave data and some of its limitations.
+\item \code{\link[=pulse_heart]{pulse_heart()}} outlines the algorithm used to identify peaks in the heart beat wave data and some of its limitations.
+\item \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} explains the method used to detect situations when the algorithm's processing resulted in an heart beat frequency double the real value.
 }
 
 Also check \code{\link[=pulse_summarise]{pulse_summarise()}} for important info about oversampling and strategies to handle it while processing PULSE data with the \code{\link{heartbeatr-package}}.
@@ -93,25 +110,88 @@ Also check \code{\link[=pulse_summarise]{pulse_summarise()}} for important info 
 
 \section{BPM}{
 
-To convert to Beats Per Minute, simply multiply \code{hz} and \code{ci} by 60.
+To convert to Beats Per Minute (bpm), simply multiply \code{hz} and \code{ci} by 60.
 }
 
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 paths <- pulse_example("RAW_original_")
-# End prepare data ----
+## End prepare data ----
 
 # Execute the entire PULSE data processing pipeline with only one call
-PULSE(
-  paths,
-  discard_channels  = paste0("s", 5:10),
-  window_width_secs = 30,
-  window_shift_secs = 60,
-  min_data_points   = 0.8,
-  interpolation_freq = 40,
-  bandwidth   = 0.2,
-  with_progress = TRUE
+
+\dontrun{
+# --> WITHOUT parallel computation
+  require(future)
+  # check current future plan
+  future::plan()
+  # set a parallelized future plan (and save the previous)
+  old_plan <- future::plan("sequential")
+
+  PULSE(
+ 	paths,
+ 	discard_channels  = paste0("s", 5:10),
+ 	window_width_secs = 30,
+ 	window_shift_secs = 60,
+ 	min_data_points   = 0.8,
+ 	interpolation_freq = 40,
+ 	bandwidth   = 0.2,
+ 	raw_v_smoothed = TRUE,
+ 	N = 3,
+ 	SD = 0.5,
+ 	correct = TRUE,
+ 	with_progress = TRUE
   )
+
+  # reset future plan to the original value
+  future::plan(old_plan)
+  # confirm that the current future plan is set to the original value
+  future::plan()}
+
+\dontrun{
+# --> WITH parallel computation
+  require(future)
+  # check current future plan
+  future::plan()
+  # set a parallelized future plan (and save the previous)
+  old_plan <- future::plan("multisession")
+
+  PULSE(...)
+
+  # reset future plan to the original value
+  future::plan(old_plan)
+  # confirm that the current future plan is set to the original value
+  future::plan()}
+
+# Equivalent to...
+pulse_data <- pulse_read(paths, with_progress = TRUE)
+
+keep_cols <- !(colnames(pulse_data$data) \%in\% paste0("s", 5:10))
+pulse_data$data <- pulse_data$data[,keep_cols]
+
+pulse_data_split <- pulse_split(
+						pulse_data,
+						window_width_secs = 30,
+						window_shift_secs = 60,
+						min_data_points = 0.8,
+						with_progress = TRUE)
+
+pulse_data_optimized <- pulse_optimize(
+							pulse_data_split,
+							interpolation_freq = 40,
+							bandwidth = 0.2,
+							raw_v_smoothed = TRUE)
+
+heart_rates <- pulse_heart(
+					pulse_data_optimized,
+					N = 3, SD = 0.5,
+					with_progress = TRUE)
+
+heart_rates <- pulse_doublecheck(
+					heart_rates,
+					N = 3, SD = 0.5,
+					correct = TRUE)
+
 }
 \seealso{
 \itemize{
@@ -119,7 +199,7 @@ PULSE(
 \item check \code{\link[future:plan]{future::plan()}} to optimize parallel processing
 \item \code{\link[=approx]{approx()}} is used by \code{\link[=pulse_interpolate]{pulse_interpolate()}} for the linear interpolation of PULSE data
 \item \code{\link[=ksmooth]{ksmooth()}} is used by \code{\link[=pulse_smooth]{pulse_smooth()}} for the kernel smoothing of PULSE data
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_check]{pulse_check()}} are the functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the functions needed for the complete PULSE processing workflow
 \item \code{\link[=pulse_summarise]{pulse_summarise()}} can be used to reduce the number of data points returned
 }
 }

@@ -15,7 +15,7 @@ pulse_plot(
 )
 }
 \arguments{
-\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
+\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
 
 \item{ID}{String naming a single target channel id (must match exactly); defaults to \code{NULL}, which results in all IDs being plotted}
 
@@ -33,17 +33,17 @@ pulse_plot(
 A ggplot object that can be augmented using ggplot2 syntax or plotted right away
 }
 \description{
-A shortcut function based on \code{ggplot2} to facilitate the quick inspection of the results of the analysis (with the options to separate channels or not).
+A shortcut function based on \code{ggplot2} to facilitate the quick inspection of the results of the analysis (with the option to separate channels or not).
 }
 \details{
 This function is \strong{NOT meant} for high-level displaying of PULSE data - it's simply a quick shortcut to facilitate data inspection.
 
-When inspecting the plot with \code{smooth = TRUE}, assess if the \code{loess} confidence intervals are too wide for any given channel, which is indicative of data with high variability (usually not desired).
+When inspecting the plot with \code{smooth = TRUE}, assess if the \code{loess} confidence intervals are too wide for any given channel, which is indicative of data with high variability (not ideal).
 
-If using \code{smooth = FALSE}, then look for the widht of the confidence interval for each data point.
+If using \code{smooth = FALSE}, then look for the width of the confidence interval for each data point.
 }
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 paths <- pulse_example("RAW_original_")
 heart_rates <- PULSE(
   paths,
@@ -53,9 +53,10 @@ heart_rates <- PULSE(
   min_data_points   = 0.8,
   interpolation_freq = 40,
   bandwidth   = 0.2,
+  raw_v_smoothed = TRUE,
   with_progress = TRUE
   )
-# End prepare data ----
+## End prepare data ----
 
 # Default
 pulse_plot(heart_rates)
@@ -64,7 +65,7 @@ pulse_plot(heart_rates)
 pulse_plot(heart_rates, facets = FALSE)
 
 # Without facets, normalized data always lines up (around 1) during the baseline period
-pulse_plot(pulse_normalize(heart_rates), normalize = TRUE, facets = FALSE)
+pulse_plot(pulse_normalize(heart_rates), normalized = TRUE, facets = FALSE)
 
 # The plot can be modified using ggplot2 syntax
 pulse_plot(heart_rates) + ggplot2::theme_classic()

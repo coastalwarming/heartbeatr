@@ -7,7 +7,7 @@
 pulse_smooth(split_window, bandwidth = 0.2)
 }
 \arguments{
-\item{split_window}{One element of \code{pulse_data_split} (\code{pulse_data_split} is the output of \code{pulse_split()}).}
+\item{split_window}{One element of \code{pulse_data_split} (which is the output from \code{pulse_split()}).}
 
 \item{bandwidth}{A numeric value expressing the bandwidth. If equal to \code{0} (zero) no smoothing is applied. Ideally kept low (defaults to \code{0.2}) so that only very high frequency noise is removed, but can be pushed up all the way to \code{1} or above (especially when the heartbeat rate is expected to be slow, as is typical of oysters, but double check the resulting data). Type \code{?ksmooth} for additional info.}
 }
@@ -21,7 +21,7 @@ The performance of the algorithm employed in the downstream function \code{pulse
 }
 }
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 pulse_data_sub <- pulse_data
 pulse_data_sub$data <- pulse_data_sub$data[,1:5]
 pulse_data_split <- pulse_split(
@@ -30,16 +30,16 @@ pulse_data_split <- pulse_split(
    window_shift_secs = 60,
    min_data_points = 0.8,
    with_progress = TRUE)
-# End prepare data ----
+## End prepare data ----
 
 # Smooth data slightly ('bandwidth' = 2)
-pulse_smooth(pulse_data_split[[1]], 0.2)
+pulse_smooth(pulse_data_split$data[[1]], 0.2)
 }
 \seealso{
 \itemize{
 \item \code{\link[=ksmooth]{ksmooth()}} is used for the kernel smoothing of PULSE data
 \item \code{\link[=pulse_optimize]{pulse_optimize()}} is a wrapper function that executes \code{\link[=pulse_interpolate]{pulse_interpolate()}} and \code{pulse_smooth} sequentially
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}} and \code{\link[=pulse_heart]{pulse_heart()}} are the other functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the other functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
 }
 }

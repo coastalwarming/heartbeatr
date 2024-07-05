@@ -31,7 +31,7 @@ pulse_split(
 \item{msg}{A logical to decide if non-crucial messages (but not errors) are shown (defaults to \code{TRUE}; mainly for use from within the wrapper function \code{PULSE()}, where it is set to \code{FALSE} to avoid the repetition of identical messages)}
 }
 \value{
-A list with all the valid time windows (i.e., complying with \code{min_data_points}), each window being a subset of \code{pulse_data} (a tibble with at least 2 columns (time + one or more channels) containing PULSE data with timestamps within that time window)
+A tibble with three columns. Column $\code{i} stores the order of each time window. Column $\code{smoothed} is a logical vector flagging smoothed data (at this point defaulting to \code{FALSE}, but later if \code{\link{pulse_optimize}} is used, values can change to \code{TRUE}. Column $\code{data} is a list with all the valid time windows (i.e., complying with \code{min_data_points}), each window being a subset of \code{pulse_data} (a tibble with at least 2 columns (time + one or more channels) containing PULSE data with timestamps within that time window)
 }
 \description{
 \itemize{
@@ -39,7 +39,7 @@ A list with all the valid time windows (i.e., complying with \code{min_data_poin
 \item \strong{\verb{-->>} step 2 -- \code{\link[=pulse_split]{pulse_split()}} \verb{<<--}}
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
-\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
+\item \verb{step 5} -- \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}
 }
 
 After all raw PULSE data has been imported, the dataset must be split across sequential time windows.
@@ -78,12 +78,11 @@ Processing large PULSE multi-channel datasets can take a long time. All main \co
 }
 
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 pulse_data_sub <- pulse_data
 pulse_data_sub$data <- pulse_data_sub$data[,1:5]
-# End prepare data ----
+## End prepare data ----
 
-# Without parallel computation
 pulse_data_split <- pulse_split(
    pulse_data_sub,
    window_width_secs = 30,
@@ -91,31 +90,26 @@ pulse_data_split <- pulse_split(
    min_data_points = 0.8,
    with_progress = TRUE)
 
-# With parallel computation
-## Not Run:
-# To engage parallel computing:
-require(future)
-future::plan() # check current future plan
-old_plan <- future::plan("multisession") # set a parallelized future plan (and save the previous)
+\dontrun{
+# --> WITH parallel computation
+  require(future)
+  # check current future plan
+  future::plan()
+  # set a parallelized future plan (and save the previous)
+  old_plan <- future::plan("multisession")
 
-pulse_data_sub <- pulse_data
-pulse_data_sub$data <- pulse_data_sub$data[,1:5]
-pulse_data_split <- pulse_split(
-   pulse_data_sub,
-   window_width_secs = 30,
-   window_shift_secs = 60,
-   min_data_points = 0.8,
-   with_progress = TRUE)
+  pulse_data_split <- pulse_split(...)
 
-future::plan(old_plan) # reset future plan to the original value
-future::plan() # confirm that the current future plan is set to the original value
-## End Not Run
+  # reset future plan to the original value
+  future::plan(old_plan)
+  # confirm that the current future plan is set to the original value
+  future::plan()}
 }
 \seealso{
 \itemize{
 \item check \code{\link[progressr:handlers]{progressr::handlers()}} to customize the reporting of progress
 \item check \code{\link[future:plan]{future::plan()}} to optimize parallel processing
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_optimize]{pulse_optimize()}} and \code{\link[=pulse_heart]{pulse_heart()}} are the other functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the other functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
 }
 }

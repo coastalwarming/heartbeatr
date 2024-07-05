@@ -5,7 +5,7 @@
 #' * **`-->>` step 2 -- [`pulse_split()`] `<<--`**
 #' * `step 3` -- [`pulse_optimize()`]
 #' * `step 4` -- [`pulse_heart()`]
-#' * `step 5` -- [`pulse_check()`]
+#' * `step 5` -- [`pulse_doublecheck()`]
 #'
 #' After all raw PULSE data has been imported, the dataset must be split across sequential time windows.
 #'
@@ -22,7 +22,7 @@
 #' @seealso
 #'  * check [progressr::handlers()] to customize the reporting of progress
 #'  * check [future::plan()] to optimize parallel processing
-#'  * [pulse_read()], [pulse_optimize()] and [pulse_heart()] are the other functions needed for the complete PULSE processing workflow
+#'  * [pulse_read()], [pulse_optimize()], [pulse_heart()] and [pulse_doublecheck()] are the other functions needed for the complete PULSE processing workflow
 #'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once
 #'
 #' @section Details:
@@ -47,17 +47,16 @@
 #' Processing large PULSE multi-channel datasets can take a long time. All main `pulse_...()` functions are built to allow parallelization based on the `futures` package. To engage parallel computing, simply set an appropriate `future` strategy before running `pulse_split()` (or at the begining of the PULSE data processing pipeline to make it available for all `pulse_...()` functions). Unless explicitly modified by the user, `future::plan()` defaults to `sequential`, i.e., not pararellized. Call `future::plan("multisession")` to use one of the most common parallelized `future` strategies. Call `?future::plan` for additional details.
 #'
 #' @return
-#' A list with all the valid time windows (i.e., complying with `min_data_points`), each window being a subset of `pulse_data` (a tibble with at least 2 columns (time + one or more channels) containing PULSE data with timestamps within that time window)
+#' A tibble with three columns. Column $`i` stores the order of each time window. Column $`smoothed` is a logical vector flagging smoothed data (at this point defaulting to `FALSE`, but later if [`pulse_optimize`] is used, values can change to `TRUE`. Column $`data` is a list with all the valid time windows (i.e., complying with `min_data_points`), each window being a subset of `pulse_data` (a tibble with at least 2 columns (time + one or more channels) containing PULSE data with timestamps within that time window)
 #'
 #' @export
 #'
 #' @examples
-#' # Begin prepare data ----
+#' ## Begin prepare data ----
 #' pulse_data_sub <- pulse_data
 #' pulse_data_sub$data <- pulse_data_sub$data[,1:5]
-#' # End prepare data ----
+#' ## End prepare data ----
 #'
-#' # Without parallel computation
 #' pulse_data_split <- pulse_split(
 #'    pulse_data_sub,
 #'    window_width_secs = 30,
@@ -65,25 +64,20 @@
 #'    min_data_points = 0.8,
 #'    with_progress = TRUE)
 #'
-#' # With parallel computation
-#' ## Not Run:
-#' # To engage parallel computing:
-#' require(future)
-#' future::plan() # check current future plan
-#' old_plan <- future::plan("multisession") # set a parallelized future plan (and save the previous)
+#' \dontrun{
+#' # --> WITH parallel computation
+#'   require(future)
+#'   # check current future plan
+#'   future::plan()
+#'   # set a parallelized future plan (and save the previous)
+#'   old_plan <- future::plan("multisession")
 #'
-#' pulse_data_sub <- pulse_data
-#' pulse_data_sub$data <- pulse_data_sub$data[,1:5]
-#' pulse_data_split <- pulse_split(
-#'    pulse_data_sub,
-#'    window_width_secs = 30,
-#'    window_shift_secs = 60,
-#'    min_data_points = 0.8,
-#'    with_progress = TRUE)
+#'   pulse_data_split <- pulse_split(...)
 #'
-#' future::plan(old_plan) # reset future plan to the original value
-#' future::plan() # confirm that the current future plan is set to the original value
-#' ## End Not Run
+#'   # reset future plan to the original value
+#'   future::plan(old_plan)
+#'   # confirm that the current future plan is set to the original value
+#'   future::plan()}
 pulse_split <- function(pulse_data, window_width_secs, window_shift_secs, min_data_points, with_progress = NULL, msg = TRUE) {
   ## CHECKS INITIATED ## ------------------- ##
   stopifnot(identical(names(pulse_data), c("data", "freq")))
@@ -156,5 +150,9 @@ pulse_split <- function(pulse_data, window_width_secs, window_shift_secs, min_da
   pulse_data_split  <- pulse_data_split[nrows >= min_data_points]
 
   # return
-  pulse_data_split
+  tibble::tibble(
+    i = seq_along(pulse_data_split),
+    smoothed = FALSE,
+    data = pulse_data_split
+  )
 }

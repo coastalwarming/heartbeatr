@@ -7,7 +7,7 @@
 pulse_interpolate(split_window, interpolation_freq = 40)
 }
 \arguments{
-\item{split_window}{One element of \code{pulse_data_split} (\code{pulse_data_split} is the output of \code{pulse_split()}).}
+\item{split_window}{One element of \code{pulse_data_split} (which is the output from \code{pulse_split()}).}
 
 \item{interpolation_freq}{A numeric value expressing the frequency (in Hz) to which PULSE data should be interpolated. Can be set to \code{0} (zero) or any value equal or greater than \code{40} (the default). If set to zero, no interpolation is performed.}
 }
@@ -21,7 +21,7 @@ The performance of the algorithm employed in the downstream function \code{pulse
 }
 }
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 pulse_data_sub <- pulse_data
 pulse_data_sub$data <- pulse_data_sub$data[,1:5]
 pulse_data_split <- pulse_split(
@@ -30,16 +30,16 @@ pulse_data_split <- pulse_split(
    window_shift_secs = 60,
    min_data_points = 0.8,
    with_progress = TRUE)
-# End prepare data ----
+## End prepare data ----
 
 # Interpolate data to 40 Hz
-pulse_interpolate(pulse_data_split[[1]], 40)
+pulse_interpolate(pulse_data_split$data[[1]], 40)
 }
 \seealso{
 \itemize{
 \item \code{\link[=approx]{approx()}} is used for the linear interpolation of PULSE data
 \item \code{\link[=pulse_optimize]{pulse_optimize()}} is a wrapper function that executes \code{pulse_interpolate} and \code{\link[=pulse_smooth]{pulse_smooth()}} sequentially
-\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}} and \code{\link[=pulse_heart]{pulse_heart()}} are the other functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the other functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
 }
 }

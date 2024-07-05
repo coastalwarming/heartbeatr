@@ -15,6 +15,3 @@ _
 \description{
 before pulse_read
 }
-\examples{
-_
-}

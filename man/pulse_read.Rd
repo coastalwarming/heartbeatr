@@ -26,24 +26,29 @@ A list with two elements:
 \item \verb{step 2} -- \code{\link[=pulse_split]{pulse_split()}}
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
-\item \verb{step 5} -- \code{\link[=pulse_check]{pulse_check()}}
+\item \verb{step 5} -- \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}
 }
 
 Importing data from PULSE \code{'.csv'} files is the first step of the analysis of PULSE data.
 
 \code{pulse_read()} checks that the paths provided by the user conform to certain expectations and then reads the data from all files and merges into a single tibble. Only data from the same experiment should be read at the same time (i.e., with the same channel names, collected with the same sampling frequency, and produced using a PULSE multi-channel system running the same firmware version throughout the experiment). To put it differently, one call to \code{pulse_read()} can only read files where the header is absolutely invariant, and only the data portion of the files differs. The output of \code{pulse_read()} can be directly passed on to \code{pulse_split()}.
 }
+\section{Time zones}{
+
+PULSE systems \strong{ALWAYS} record data using \strong{UTC +0}. This is intentional! If data were to be recorded using local time zones, issues with daylight saving time, leap seconds, etc. could spoil the dataset. Worse, should the information about which time zone had been used get lost or accidentally modified, the validity of the entire dataset could be compromised. By always using UTC +0 all these issues are minimized and the processing pipeline becomes vastly easier and more efficient. Still, this means that after the data has been processed using the \code{\link{heartbeatr-package}}, the user may need to adjust the time zone of all timestamps so that the timing matches other information relative to the experiment.
+}
+
 \examples{
-# Begin prepare data ----
+## Begin prepare data ----
 paths <- pulse_example("RAW_original_")
-# End prepare data ----
+## End prepare data ----
 
 pulse_read(paths, with_progress = TRUE)
 }
 \seealso{
 \itemize{
 \item check \code{\link[progressr:handlers]{progressr::handlers()}} to customize the reporting of progress
-\item \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}} and \code{\link[=pulse_heart]{pulse_heart()}} are the other functions needed for the complete PULSE processing workflow
+\item \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the other functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
 }
 }
