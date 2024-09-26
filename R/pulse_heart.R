@@ -439,9 +439,9 @@ pulse_doublecheck <- function(heart_rates, flag = 0.9, N = 3, SD = 0.5, correct 
 	# values closer to 1 indicate that the alternation is perfect (one above, one below, one above, etc)
 	alternates <- purrr::map(positives, ~.x %>%
 													 	which() %>%
-													 	diff() %>%
-													 	"=="(2)
+													 	diff()
 	)
+	alternates[!purrr::map_dbl(alternates, length)] <- 1
 	alternates <- purrr::map_dbl(alternates, ~sum(.x) / length(.x)) # the value is expressed as a ratio
 
 	# tidy
