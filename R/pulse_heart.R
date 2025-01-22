@@ -1,3 +1,49 @@
+#' Find peaks of waves in raw PULSE data
+#' @description
+#' `heartbeatr-package` Find peaks of waves in raw PULSE data
+#'
+#' @param t time
+#' @param y val
+#' @export
+find_peaks <- function(t, y) {
+	N <- length(y)
+	L <- N %/% 2  # half-length of the array
+
+	# de-trend data
+	# S <- seq(1:N)
+	# f <- fitted(lm(y ~ S))
+	# y <- y - f
+
+	# create a Boolean matrix with L rows and N columns, initialized with TRUE
+	MAT <- matrix(rep(TRUE, L * N), nrow = L)
+
+	# loop to compare to right and left neighbors
+	for (k in 1:L) {
+		MAT[k, 1:(N - k)] <- MAT[k, 1:(N - k)] & (y[1:(N - k)] > y[(k + 1):N])
+		MAT[k, (k + 1):N] <- MAT[k, (k + 1):N] & (y[(k + 1):N] > y[1:(N - k)])
+	}
+
+	# find scale with most maxima
+	G <- rowSums(MAT)
+	G <- G * (L:1) # normalize to adjust for new edge regions
+	l_scale <- which.max(G)
+
+	# find peaks that persist on all scales up to l
+	MAT <- MAT[1:l_scale, , drop = FALSE]
+	pks_logical <- apply(MAT, 2, all)
+
+	# sometimes the algorithm picks up peaks at the beginning or end of the
+	# split window, and those must be rejected
+	if (N > 20) {
+		l <- 10
+		pks_logical[1:l] <- FALSE
+		pks_logical[(N-l+1):N] <- FALSE
+	}
+
+	pks <- which(pks_logical)
+	pks
+}
+
 #' Determine the heart beat frequency in one PULSE channel
 #'
 #' @description
@@ -42,7 +88,7 @@
 #'    window_shift_secs = 60,
 #'    min_data_points = 0.8,
 #'    with_progress = TRUE)
-#' pulse_data_split <- pulse_optimize(pulse_data_split)
+#' pulse_data_split <- pulse_optimize(pulse_data_split, multi = pulse_data$multi)
 #' split_window <- pulse_data_split$data[[1]]
 #' split_window_one_channel <- split_window[,1:2]
 #' colnames(split_window_one_channel) <- c("time", "val")
@@ -63,41 +109,13 @@ pulse_find_peaks_one_channel <- function(split_window_one_channel) {
 	if (has.peak) {
 		pks <- which(split_window_one_channel$peak)
 	} else {
-		N <- length(y)
-		L <- N %/% 2  # half-length of the array
-
-		# de-trend data
-		# S <- seq(1:N)
-		# f <- fitted(lm(y ~ S))
-		# y <- y - f
-
-		# create a Boolean matrix with L rows and N columns, initialized with TRUE
-		MAT <- matrix(rep(TRUE, L * N), nrow = L)
-
-		# loop to compare to right and left neighbors
-		for (k in 1:L) {
-			MAT[k, 1:(N - k)] <- MAT[k, 1:(N - k)] & (y[1:(N - k)] > y[(k + 1):N])
-			MAT[k, (k + 1):N] <- MAT[k, (k + 1):N] & (y[(k + 1):N] > y[1:(N - k)])
+		pks <- find_peaks(t, y)
+		if (length(pks) < 3) {
+			split_window_one_channel <- pulse_smooth1(split_window_one_channel)
+			t <- split_window_one_channel$time
+			y <- split_window_one_channel$val
+			pks <- find_peaks(t, y)
 		}
-
-		# find scale with most maxima
-		G <- rowSums(MAT)
-		G <- G * (L:1) # normalize to adjust for new edge regions
-		l_scale <- which.max(G)
-
-		# find peaks that persist on all scales up to l
-		MAT <- MAT[1:l_scale, , drop = FALSE]
-		pks_logical <- apply(MAT, 2, all)
-
-		# sometimes the algorithm picks up peaks at the beginning or end of the
-		# split window, and those must be rejected
-		if (N > 20) {
-			l <- 10
-			pks_logical[1:l] <- FALSE
-			pks_logical[(N-l+1):N] <- FALSE
-		}
-
-		pks <- which(pks_logical)
 	}
 
 	# compute stats
@@ -155,7 +173,7 @@ pulse_find_peaks_one_channel <- function(split_window_one_channel) {
 #'    window_shift_secs = 60,
 #'    min_data_points = 0.8,
 #'    with_progress = TRUE)
-#' pulse_data_split <- pulse_optimize(pulse_data_split)
+#' pulse_data_split <- pulse_optimize(pulse_data_split, multi = pulse_data$multi)
 #' split_window <- pulse_data_split$data[[1]]
 #' ## End prepare data ----
 #'
@@ -205,7 +223,6 @@ pulse_find_peaks_all_channels <- function(split_window) {
 #' @seealso
 #'  *  [pulse_read()], [pulse_split()], [pulse_optimize()], [pulse_heart()] and [pulse_doublecheck()] are the other functions needed for the complete PULSE processing workflow
 #'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once
-#'
 pulse_choose_keep <- function(heart_rates) {
 	r_v_s <- heart_rates$smoothed %>%
 		unique() %>%
@@ -289,7 +306,7 @@ pulse_choose_keep <- function(heart_rates) {
 #'  * [pulse_find_peaks_all_channels()] runs [pulse_find_peaks_one_channel()] on all PULSE channels
 #'  *  [pulse_read()], [pulse_split()], [pulse_optimize()] and [pulse_doublecheck()] are the other functions needed for the complete PULSE processing workflow
 #'  * [PULSE()] is a wrapper function that executes all the steps needed to process PULSE data at once
-#'  * [pulse_summarise()] can be used to reduce the number of data points returned
+ # * [pulse_summarise()] can be used to reduce the number of data points returned
 #'
 #' @examples
 #' ## Begin prepare data ----
@@ -301,7 +318,10 @@ pulse_choose_keep <- function(heart_rates) {
 #'    window_shift_secs = 60,
 #'    min_data_points = 0.8,
 #'    with_progress = TRUE)
-#' pulse_data_split <- pulse_optimize(pulse_data_split, raw_v_smoothed = TRUE)
+#' pulse_data_split <- pulse_optimize(
+#'		pulse_data_split,
+#'		raw_v_smoothed = TRUE,
+#'		multi = pulse_data$multi)
 #' ## End prepare data ----
 #'
 #' # Determine heartbeat rates in all channels in all time window
@@ -318,11 +338,11 @@ pulse_heart <- function(pulse_data_split, N = 3, SD = 0.5, with_progress = NULL,
 		magrittr::extract(2)
 	if (msg) {
 		if (current_strategy == "sequential") {
-			message("  --> [i] parallel computing not engaged")
-			message("  --> [i] if too slow, type ?PULSE for help on how to use parallel computing\n")
+			cli::cli_alert("parallel computing not engaged")
+			cli::cli_alert("if too slow, type ?PULSE for help on how to use parallel computing")
 		} else {
-			message("  --> [i] parallel computing engaged")
-			message(stringr::str_c("  --> [i] current future strategy: ", current_strategy, "\n"))
+			cli::cli_alert("parallel computing engaged")
+			cli::cli_alert(stringr::str_c("[i] current future strategy: ", current_strategy, "\n"))
 		}
 	}
 
@@ -385,7 +405,7 @@ pulse_heart <- function(pulse_data_split, N = 3, SD = 0.5, with_progress = NULL,
 #' @param flag Decimal from 0 to 1. Values of `ratio` above this number will be flagged as instances where the algorithm resulted in double the real heart rate. Defaults to `0.9`. Values above `1`are meaningless (zero data points will be flagged), and values below `~0.66` are too lax (many data points will be flagged when they shouldn't).
 #' @param correct Logical. If `FALSE`, data points with `hz` values likely double the real value are flagged **BUT NOT CORRECTED**. If `TRUE`, `hz` (as well as `data`, `n`, `sd` and `ci`) are corrected accordingly. Note that the correction is not reversible! (defaults to `TRUE`)
 #'
-#' @return A tibble similar to the one used as input, now augmented with three new columns: `d_r`, `d_m` and `d_f`. Values of `d_r` (ratio) close to `1` are indicative that the value for `hz` determined by the algorithm should be halved. `d_m` (magnitude) expresses the magnitude of difference between the peak interval spans, and when together with a high `d_r`, high values further indicates that `hz` a given data point should be halved. If `correct`was set to `TRUE`, `d_f` flags data points where `hz` **HAS BEEN HALVED**. If `correct`was set to `FALSE`, then `d_f` flags data points where `hz` **SHOULD BE HALVED**.
+#' @return A tibble similar to the one used as input, now augmented with three new columns: `d_r` and `d_f`. Values of `d_r` (ratio) close to `1` are indicative that the value for `hz` determined by the algorithm should be halved. If `correct`was set to `TRUE`, `d_f` flags data points where `hz` **HAS BEEN HALVED**. If `correct`was set to `FALSE`, then `d_f` flags data points where `hz` **SHOULD BE HALVED**.
 #'
 #' @section Heart beat frequency estimation:
 #' For many invertebrates, the circulatory system includes more than one contractile chamber, meaning that there are two consecutive movements that may or may not be detected by the PULSE system's IR sensors. Furthermore, when the sensor is attached to the shell of the animal, it remains at a fixed position even as the soft body tissues move below that. As a result, even if one takes explicit care to position the sensor in such a way that only one wave peak is detected for each heart beat cycle, at some point the animal may move and the sensor's field of view may come to encompass both contractile chambers. When that occurs, the shape of the signal detected will include two peaks per heart beat cycle, the relative sizes of which may vary considerably. To be clear, there's nothing wrong with such a signal. However, it creates a problem: the algorithm detects peaks, and therefore, if two peaks are detected for each heart beat, the resulting estimate for the heart beat frequency will show a value twice as much as the real value.
@@ -409,7 +429,10 @@ pulse_heart <- function(pulse_data_split, N = 3, SD = 0.5, with_progress = NULL,
 #'    window_shift_secs = 60,
 #'    min_data_points = 0.8,
 #'    with_progress = TRUE)
-#' pulse_data_split <- pulse_optimize(pulse_data_split, raw_v_smoothed = TRUE)
+#' pulse_data_split <- pulse_optimize(
+#'		pulse_data_split,
+#'		raw_v_smoothed = TRUE,
+#'		multi = pulse_data$multi)
 #' heart_rates <- pulse_heart(pulse_data_split)
 #' ## End prepare data ----
 #'
@@ -427,28 +450,34 @@ pulse_doublecheck <- function(heart_rates, flag = 0.9, N = 3, SD = 0.5, correct 
 	)
 
 	# identify which ones are above the median
-	positives <- purrr::map(diffs, ~(.x - quantile(.x, 0.5) > 0))
+	magnitudes <- purrr::map_dbl(diffs, ~ifelse(length(.x), (.x - quantile(.x, 0.5)) %>% range() %>% diff(), 0))
+
+	positives  <- purrr::map(diffs, ~(.x - quantile(.x, 0.5) > 0))
+
+	positives[purrr::map_lgl(positives, ~length(.x) == 0)]  <- FALSE
+	positives[magnitudes < 1]  <- FALSE
 
 	# compute the magnitude of the difference between the average value for the peaks above the mean, and the average value for the beaks below the mean
 	# if heart beats where identified as two peaks, this is indicative of how different the two groups of time spans are
-	POS <- purrr::map2(positives, diffs, ~.y[ .x])
-	NEG <- purrr::map2(positives, diffs, ~.y[!.x])
-	MGN <- purrr::map2_dbl(POS, NEG, ~((.x %>% mean()) - (.y %>% mean())))
+	# POS <- purrr::map2(positives, diffs, ~.y[ .x])
+	# NEG <- purrr::map2(positives, diffs, ~.y[!.x])
+	# MGN <- purrr::map2_dbl(POS, NEG, ~((.x %>% mean()) - (.y %>% mean())))
 
 	# investigate if there's an alternation between values above and below the mean
 	# values closer to 1 indicate that the alternation is perfect (one above, one below, one above, etc)
 	alternates <- purrr::map(positives, ~.x %>%
 													 	which() %>%
-													 	diff()
+													 	diff() %>%
+													 	"=="(2)
 	)
-	alternates[!purrr::map_dbl(alternates, length)] <- 1
+	alternates[purrr::map_dbl(alternates, length) < 6] <- FALSE
 	alternates <- purrr::map_dbl(alternates, ~sum(.x) / length(.x)) # the value is expressed as a ratio
 
 	# tidy
 	hr <- heart_rates %>%
 		dplyr::mutate(
 			d_r = alternates,
-			d_m = MGN,
+			# d_m = MGN,
 			d_f = d_r > flag
 		)
 
@@ -496,14 +525,15 @@ pulse_halve <- function(hr, N, SD) {
 			old_peaks <- which(x$peak)
 			old_peaks <- old_peaks[1:(length(old_peaks) - (length(old_peaks) %% 2))] # length needs to be even
 			pairs <- rep(seq(1, length(old_peaks) / 2), each = 2)
-			new_peaks <- old_peaks %>%
-				split(pairs) %>%
-				purrr::map_dbl(mean) %>%
-				round()
+			if (length(unique(pairs)) > 2) {
+				new_peaks <- old_peaks %>%
+					split(pairs) %>%
+					purrr::map_dbl(mean) %>%
+					round()
 
-			x$peak <- FALSE
-			x$peak[new_peaks] <- TRUE
-
+				x$peak <- FALSE
+				x$peak[new_peaks] <- TRUE
+			}
 			new_dat <- pulse_find_peaks_one_channel(x)
 			new_dat$data <- list(x)
 			new_dat
@@ -522,34 +552,3 @@ pulse_halve <- function(hr, N, SD) {
 	hr
 }
 
-# pulse_halve_double <- function(hr_data, mode = "halve") {
-# 	if (mode == "halve") {
-# 		old_peaks <- which(hr_data$peak)
-# 		old_peaks <- old_peaks[1:(length(old_peaks) - (length(old_peaks) %% 2))] # length needs to be even
-# 		pairs <- rep(seq(1, length(old_peaks) / 2), each = 2)
-# 		new_peaks <- old_peaks %>%
-# 			split(pairs) %>%
-# 			purrr::map_dbl(mean) %>%
-# 			round()
-#
-# 		hr_data$peak <- FALSE
-# 		hr_data$peak[new_peaks] <- TRUE
-#
-# 		new_dat <- pulse_find_peaks_one_channel(hr_data)
-# 	}
-#
-# 	if (mode == "double") {
-# 		new_dat <- hr_data %>%
-# 			dplyr::select(-peak) %>%
-# 			pulse_find_peaks_one_channel()
-#
-# 		hr_data$peak <- FALSE
-# 		t_pks <- hr_data$time %in% new_dat$t_pks
-# 		hr_data$peak[t_pks] <- TRUE
-# 	}
-#
-# 	# return
-# 	new_dat$data <- list(hr_data)
-# 	# new_dat$d_f <- FALSE
-# 	new_dat
-# }

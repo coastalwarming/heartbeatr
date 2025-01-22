@@ -9,7 +9,7 @@ test_that("returns same structure as the input", {
 		msg = FALSE)
 
 	p1 <- pulse_data_split$data[[1]]
-	p2 <- pulse_interpolate(p1, interpolation_freq = 40)
+	p2 <- pulse_interpolate(p1, interpolation_freq = 40, multi = pulse_data$multi)
 
 	expect_equal(class(p1), class(p2))
 	expect_equal(ncol(p1), ncol(p2))
@@ -28,8 +28,8 @@ test_that("higher interpolation_freq leads to more rows of data", {
 		msg = FALSE)
 
 	expect_true(
-		nrow(pulse_interpolate(pulse_data_split$data[[1]], interpolation_freq = 40)) <
-			nrow(pulse_interpolate(pulse_data_split$data[[1]], interpolation_freq = 50))
+		nrow(pulse_interpolate(pulse_data_split$data[[1]], interpolation_freq = 40, multi = pulse_data$multi)) <
+			nrow(pulse_interpolate(pulse_data_split$data[[1]], interpolation_freq = 50, multi = pulse_data$multi))
 	)
 })
 
@@ -44,7 +44,7 @@ test_that("fails when interpolation_freq too low", {
 		with_progress = FALSE,
 		msg = FALSE)
 
-	expect_error(pulse_interpolate(pulse_data_split$data[[1]], interpolation_freq = 39))
-	expect_no_error(pulse_interpolate(pulse_data_split$data[[1]], interpolation_freq = 40))
+	expect_error(pulse_interpolate(pulse_data_split$data[[1]], interpolation_freq = 39, multi = pulse_data$multi))
+	expect_no_error(pulse_interpolate(pulse_data_split$data[[1]], interpolation_freq = 40, multi = pulse_data$multi))
 })
 

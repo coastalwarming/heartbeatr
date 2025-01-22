@@ -7,7 +7,7 @@
 pulse_anim(heart_rates, folder = NULL, fps = 10, ID = NULL)
 }
 \arguments{
-\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
+\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}, and  \code{\link[=pulse_normalize]{pulse_normalize()}}).}
 
 \item{folder}{A valid path to an existing folder where the file \code{anim.mp4} will be saved. If not provided, \code{anim.mp4} will be saved to the current work directory. In any case, the final path is always printed at the end.}
 
@@ -26,7 +26,7 @@ This function is \strong{NOT meant} for high-level displaying of the data - it's
 
 This function is \strong{EXPERIMENTAL}, and the resulting animation may not be correctly formatted in every machine - please be patient and provide constructive feedback.
 
-On a machine running MacOS, the animation movie can easily be inspected using \verb{QuickTime Player}.
+On a machine running MacOS, the animation movie can be inspected using \verb{QuickTime Player}.
 
 When inspecting the movie, go through each frame and assess if red dots top all heartbeats and no more than that. Additional info is displayed in the graph's title (such as sd). Difficult datasets may result in true heartbeats being missed or non-heartbeats (noise) being erroneously detected (false positives and/or false negatives). Note that the wider the time window (controlled by the \code{window_width_secs} parameter in \code{\link[=pulse_split]{pulse_split()}}) and the higher the heartbeat rate, the less critical are a few false positives or negatives (over a 10 secs window, missing 1 peak in 10 results in hz to drop by 10\% (from 1 to 0.9), while over a 30 secs window, missing 1 peak in 30 results in a drop of 3.33\% (from 1 to 0.967), and missing 1 peak in 60 results in a drop of just 1.7\%. With the animated plot, it becomes much quicker and easy to inspect the overall performance of the analysis over a large dataset.
 }

@@ -6,9 +6,9 @@ test_that("returns the correct structure: 2 elements with correct names", {
 	x <- pulse_read(paths, msg = FALSE)
 
 	# has 2 elements
-	expect_true(length(x) == 2)
+	expect_true(length(x) == 4)
 	# with the expected names
-	expect_equal(names(x), c("data", "freq"))
+	expect_equal(names(x), c("data", "multi", "vrsn", "freq"))
 })
 
 test_that("returns the correct structure: freq", {

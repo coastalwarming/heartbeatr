@@ -7,7 +7,7 @@
 NULL
 
 ignore_unused_imports <- function() {
-	cli::cli
+	# cli::cli
 	av::av_encoders
 	transformr::path_spiral
 }

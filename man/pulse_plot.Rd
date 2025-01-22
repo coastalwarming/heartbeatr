@@ -15,7 +15,7 @@ pulse_plot(
 )
 }
 \arguments{
-\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}, \code{\link[=pulse_normalize]{pulse_normalize()}} and \code{\link[=pulse_summarise]{pulse_summarise()}}).}
+\item{heart_rates}{The output of \code{\link[=PULSE]{PULSE()}} (or \code{\link[=pulse_heart]{pulse_heart()}}, \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}, and  \code{\link[=pulse_normalize]{pulse_normalize()}}).}
 
 \item{ID}{String naming a single target channel id (must match exactly); defaults to \code{NULL}, which results in all IDs being plotted}
 

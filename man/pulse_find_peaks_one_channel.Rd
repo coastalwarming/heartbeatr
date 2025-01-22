@@ -41,7 +41,7 @@ pulse_data_split <- pulse_split(
    window_shift_secs = 60,
    min_data_points = 0.8,
    with_progress = TRUE)
-pulse_data_split <- pulse_optimize(pulse_data_split)
+pulse_data_split <- pulse_optimize(pulse_data_split, multi = pulse_data$multi)
 split_window <- pulse_data_split$data[[1]]
 split_window_one_channel <- split_window[,1:2]
 colnames(split_window_one_channel) <- c("time", "val")

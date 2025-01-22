@@ -16,8 +16,10 @@ pulse_read(paths, with_progress = NULL, msg = TRUE)
 \value{
 A list with two elements:
 \itemize{
-\item \verb{$data}, A tibble with 11 columns (time + 10 channels) containing all data from all PULSE files
-\item \verb{$freq}, A numeric scalar with the sampling frequency used (in Hz)
+\item \verb{$data}, A tibble containing all data from all PULSE files
+\item \verb{$multi}, A logical indicating if the data is from a multi-channel system (TRUE) or from a one-channel system (FALSE)
+\item \verb{$vrsn}, A numeric value with the version number of the PULSE system where the data was generated
+\item \verb{$freq}, A numeric value with the sampling frequency used (in Hz)
 }
 }
 \description{
@@ -31,7 +33,7 @@ A list with two elements:
 
 Importing data from PULSE \code{'.csv'} files is the first step of the analysis of PULSE data.
 
-\code{pulse_read()} checks that the paths provided by the user conform to certain expectations and then reads the data from all files and merges into a single tibble. Only data from the same experiment should be read at the same time (i.e., with the same channel names, collected with the same sampling frequency, and produced using a PULSE multi-channel system running the same firmware version throughout the experiment). To put it differently, one call to \code{pulse_read()} can only read files where the header is absolutely invariant, and only the data portion of the files differs. The output of \code{pulse_read()} can be directly passed on to \code{pulse_split()}.
+\code{pulse_read()} checks that the paths provided by the user conform to certain expectations and then reads the data from all files and merges into a single tibble. Only data from the same experiment should be read at the same time (i.e., with the same channel names, collected with the same sampling frequency, and produced using a PULSE multi-channel or a PULSE one-channel system running the same firmware version throughout the experiment). To put it differently, one call to \code{pulse_read()} can only read files where the header is absolutely invariant, and only the data portion of the files differs. The output of \code{pulse_read()} can be directly passed on to \code{pulse_split()}.
 }
 \section{Time zones}{
 

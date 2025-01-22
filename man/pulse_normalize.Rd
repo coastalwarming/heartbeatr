@@ -43,7 +43,7 @@ pulse_data_split <- pulse_split(
    window_shift_secs = 60,
    min_data_points = 0.8,
    with_progress = TRUE)
-pulse_data_split <- pulse_optimize(pulse_data_split)
+pulse_data_split <- pulse_optimize(pulse_data_split, multi = pulse_data$multi)
 heart_rates <- pulse_heart(pulse_data_split)
 heart_rates <- pulse_doublecheck(heart_rates)
 ## End prepare data ----

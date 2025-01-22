@@ -16,7 +16,7 @@ plot_test <- function(data) {
 #'
 #' If using `smooth = FALSE`, then look for the width of the confidence interval for each data point.
 #'
-#' @param heart_rates The output of [PULSE()] (or [pulse_heart()], [pulse_doublecheck()], [pulse_normalize()] and [pulse_summarise()]).
+#' @param heart_rates The output of [PULSE()] (or [pulse_heart()], [pulse_doublecheck()], and  [pulse_normalize()]).
 #' @param ID String naming a single target channel id (must match exactly); defaults to `NULL`, which results in all IDs being plotted
 #' @param normalized Logical, whether to plot `hz_norm` (`TRUE`) or `hz` (`FALSE`, the default).
 #' @param smooth Logical, whether to plot a `loess` smoothing curve (`TRUE`, the default) or a line (`FALSE`).
@@ -78,7 +78,7 @@ pulse_plot <- function(heart_rates, ID = NULL, normalized = FALSE, smooth = TRUE
 	if (!is.null(ID)) hr <- dplyr::filter(hr, id == ID)
 
 	if (normalized) {
-		if (!any(colnames(hr) == "hz_norm")) stop("\n  --> [x] 'hz_norm' is missing in 'heart_rates'\n  --> [x] normalized heart beat frequencies cannot be plotted\n  --> [i] run 'heart_rates' through 'pulse_normalize()' first to fix this")
+		if (!any(colnames(hr) == "hz_norm")) cli::cli_abort("'hz_norm' is missing in 'heart_rates'\n  --> [x] normalized heart beat frequencies cannot be plotted\n  --> [i] run 'heart_rates' through 'pulse_normalize()' first to fix this")
 		hr  <- dplyr::mutate(hr, val = hz_norm)
 		bpm <- FALSE
 	}
@@ -184,47 +184,6 @@ pulse_plot <- function(heart_rates, ID = NULL, normalized = FALSE, smooth = TRUE
 #'
 #' # The plot can be modified using ggplot2 syntax
 #' pulse_plot_raw(heart_rates, "limpet_1", target_i = 5) + ggplot2::theme_classic()
-#'
-#' # Use it to inspect if the windows where heart beat frequency
-#' #  was suspected to be double the real value were correctly handled
-#' doubles <- dplyr::filter(heart_rates, d_r == 1) # 4 rows
-#'
-#' pulse_plot_raw(doubles, "limpet_4", target_i = 1)
-#' # only 3 out of 4 peaks were detected, which is to be expected given
-#' #  the big drop in the signal midway through the window
-#' # --> this hz estimate isn't accurate
-#'
-#' pulse_plot_raw(doubles, "limpet_4", target_i = 2)
-#' # 4 consecutive peaks detected and properly spaced
-#' # --> this hz estimate is accurate
-#'
-#' pulse_plot_raw(doubles, "limpet_4", target_i = 3)
-#' # 4 consecutive peaks detected and properly spaced
-#' # NOTE THAT EVEN THOUGH THE PEAKS DETECTED ARE SLIGHTLY SHIFTED
-#' #  FROM THE SIGNAL PEAKS, they are properly spaced (matching the
-#' #  signal's frequency)
-#' # --> this hz estimate is still accurate
-#'
-#' pulse_plot_raw(doubles, "limpet_4", target_i = 4)
-#' # this window captured mostly just noise,
-#' # --> this hz estimate is meaningless
-#'
-#' # Now note that the column 'keep' already signaled correctly
-#' #  which of these 4 windows should be kept and which should
-#' #  be discarded.
-#' # In any case, if upon inspection one reaches a different
-#' #  conclusion, the column 'keep' can be modified accordingly
-#'
-#' # just as an example, let's change the value of 'keep'
-#' #  corresponding to row 4 in doubles
-#' target <- 4
-#'
-#' # first we find the corresponding row in heart_rates
-#' i <- which(
-#'	heart_rates$i == doubles$i[target] &
-#'	heart_rates$id == doubles$id[target])
-#'
-#' heart_rates$keep[i] <- TRUE # was FALSE but now is TRUE
 pulse_plot_raw <- function(heart_rates, ID, target_time = NULL, range = 0, target_i = NULL) {
 
 	stopifnot(sum(!is.null(target_time), !is.null(target_i)) == 1)
@@ -290,7 +249,7 @@ pulse_plot_raw <- function(heart_rates, ID, target_time = NULL, range = 0, targe
 #'
 #' This function is **EXPERIMENTAL**, and the resulting animation may not be correctly formatted in every machine - please be patient and provide constructive feedback.
 #'
-#' On a machine running MacOS, the animation movie can easily be inspected using `QuickTime Player`.
+#' On a machine running MacOS, the animation movie can be inspected using `QuickTime Player`.
 #'
 #' When inspecting the movie, go through each frame and assess if red dots top all heartbeats and no more than that. Additional info is displayed in the graph's title (such as sd). Difficult datasets may result in true heartbeats being missed or non-heartbeats (noise) being erroneously detected (false positives and/or false negatives). Note that the wider the time window (controlled by the `window_width_secs` parameter in [`pulse_split()`]) and the higher the heartbeat rate, the less critical are a few false positives or negatives (over a 10 secs window, missing 1 peak in 10 results in hz to drop by 10% (from 1 to 0.9), while over a 30 secs window, missing 1 peak in 30 results in a drop of 3.33% (from 1 to 0.967), and missing 1 peak in 60 results in a drop of just 1.7%. With the animated plot, it becomes much quicker and easy to inspect the overall performance of the analysis over a large dataset.
 #'
@@ -339,7 +298,7 @@ pulse_plot_raw <- function(heart_rates, ID, target_time = NULL, range = 0, targe
 #' }
 pulse_anim <- function(heart_rates, folder = NULL, fps = 10, ID = NULL) {
 	if (is.null(folder)) folder <- getwd()
-	if (!dir.exists(dirname(folder))) stop("\n  --> [x] the folder provided doesn't exist")
+	if (!dir.exists(dirname(folder))) cli::cli_abort("the folder provided doesn't exist")
 
 	files <- dir(folder) %>% stringr::str_subset(pattern = "^anim_.+\\.mp4$")
 	if (!length(files))	{
@@ -350,7 +309,7 @@ pulse_anim <- function(heart_rates, folder = NULL, fps = 10, ID = NULL) {
 			max()
 		path <- file.path(folder, paste0("anim_", formatC(i + 1, flag = "0", width = 2), ".mp4"))
 	}
-	if (file.exists(path)) stop("\n  --> [x] something went wrong when trying to come up with a new\n       filename for the animation file\n  --> [i] the easiest solution is to save to a folder where there\n       aren't any animation files saved yet")
+	if (file.exists(path)) cli::cli_abort("something went wrong when trying to come up with a new\n       filename for the animation file\n  --> [i] the easiest solution is to save to a folder where there\n       aren't any animation files saved yet")
 
 	if (is.null(ID)) ID <- unique(heart_rates$id)
 
@@ -400,6 +359,6 @@ pulse_anim <- function(heart_rates, folder = NULL, fps = 10, ID = NULL) {
 										 fps = fps,
 										 renderer = gganimate::av_renderer(file = basename(path)))
 
-	message("\n\n  --> [i] path to animation file:\n    ", path)
+	cli::cli_alert_success("path to animation file:\n    ", path)
 }
 

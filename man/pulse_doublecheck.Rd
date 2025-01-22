@@ -18,7 +18,7 @@ pulse_doublecheck(heart_rates, flag = 0.9, N = 3, SD = 0.5, correct = TRUE)
 \item{correct}{Logical. If \code{FALSE}, data points with \code{hz} values likely double the real value are flagged \strong{BUT NOT CORRECTED}. If \code{TRUE}, \code{hz} (as well as \code{data}, \code{n}, \code{sd} and \code{ci}) are corrected accordingly. Note that the correction is not reversible! (defaults to \code{TRUE})}
 }
 \value{
-A tibble similar to the one used as input, now augmented with three new columns: \code{d_r}, \code{d_m} and \code{d_f}. Values of \code{d_r} (ratio) close to \code{1} are indicative that the value for \code{hz} determined by the algorithm should be halved. \code{d_m} (magnitude) expresses the magnitude of difference between the peak interval spans, and when together with a high \code{d_r}, high values further indicates that \code{hz} a given data point should be halved. If \code{correct}was set to \code{TRUE}, \code{d_f} flags data points where \code{hz} \strong{HAS BEEN HALVED}. If \code{correct}was set to \code{FALSE}, then \code{d_f} flags data points where \code{hz} \strong{SHOULD BE HALVED}.
+A tibble similar to the one used as input, now augmented with three new columns: \code{d_r} and \code{d_f}. Values of \code{d_r} (ratio) close to \code{1} are indicative that the value for \code{hz} determined by the algorithm should be halved. If \code{correct}was set to \code{TRUE}, \code{d_f} flags data points where \code{hz} \strong{HAS BEEN HALVED}. If \code{correct}was set to \code{FALSE}, then \code{d_f} flags data points where \code{hz} \strong{SHOULD BE HALVED}.
 }
 \description{
 \itemize{
@@ -51,7 +51,10 @@ pulse_data_split <- pulse_split(
    window_shift_secs = 60,
    min_data_points = 0.8,
    with_progress = TRUE)
-pulse_data_split <- pulse_optimize(pulse_data_split, raw_v_smoothed = TRUE)
+pulse_data_split <- pulse_optimize(
+	pulse_data_split,
+	raw_v_smoothed = TRUE,
+	multi = pulse_data$multi)
 heart_rates <- pulse_heart(pulse_data_split)
 ## End prepare data ----
 

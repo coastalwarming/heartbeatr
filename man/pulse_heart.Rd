@@ -66,7 +66,10 @@ pulse_data_split <- pulse_split(
    window_shift_secs = 60,
    min_data_points = 0.8,
    with_progress = TRUE)
-pulse_data_split <- pulse_optimize(pulse_data_split, raw_v_smoothed = TRUE)
+pulse_data_split <- pulse_optimize(
+	pulse_data_split,
+	raw_v_smoothed = TRUE,
+	multi = pulse_data$multi)
 ## End prepare data ----
 
 # Determine heartbeat rates in all channels in all time window
@@ -79,6 +82,5 @@ pulse_heart(pulse_data_split)
 \item \code{\link[=pulse_find_peaks_all_channels]{pulse_find_peaks_all_channels()}} runs \code{\link[=pulse_find_peaks_one_channel]{pulse_find_peaks_one_channel()}} on all PULSE channels
 \item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the other functions needed for the complete PULSE processing workflow
 \item \code{\link[=PULSE]{PULSE()}} is a wrapper function that executes all the steps needed to process PULSE data at once
-\item \code{\link[=pulse_summarise]{pulse_summarise()}} can be used to reduce the number of data points returned
 }
 }

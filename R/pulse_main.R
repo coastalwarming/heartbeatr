@@ -9,11 +9,11 @@
 #' * `step 4` -- [pulse_heart()]
 #' * `step 5` -- [pulse_doublecheck()]
 #'
-#' * `extra step` -- [pulse_summarise()]
+# * `extra step` -- [pulse_summarise()]
 #'
 #' This is a wrapper function that provides a shortcut to running all 5 steps of the PULSE multi-channel data processing pipeline in sequence, namely `pulse_read()` >> `pulse_split()` >> `pulse_optimize()` >> `pulse_heart()` >> `pulse_doublecheck()`.
 #'
-#' **IMPORTANT NOTE**: [pulse_summarise()] is not included in [PULSE()] because it isn't essential for the PULSE data processing pipeline. However, in many instances it's important to run the output from [PULSE()] through `pulse_summarise()` before analyzing the estimated heart beat frequencies. This is because certain combinations of parameters may result in too many data points (leading to oversampling), a situation that can be resolved with `pulse_summarise()`. Be sure to check its help file (`?pulse_summarise`) before processing any large PULSE datasets, to understand the two main strategies that can be employed to handle oversampling and reduce sensitivity to pockets of poor-quality data across a dataset.
+# **IMPORTANT NOTE**: [pulse_summarise()] is not included in [PULSE()] because it isn't essential for the PULSE data processing pipeline. However, in many instances it's important to run the output from [PULSE()] through `pulse_summarise()` before analyzing the estimated heart beat frequencies. This is because certain combinations of parameters may result in too many data points (leading to oversampling), a situation that can be resolved with `pulse_summarise()`. Be sure to check its help file (`?pulse_summarise`) before processing any large PULSE datasets, to understand the two main strategies that can be employed to handle oversampling and reduce sensitivity to pockets of poor-quality data across a dataset.
 #'
 #' `PULSE()` takes a vector of `paths` to PULSE csv files produced by a PULSE multi-channel system during **a single experiment** and automatically computes the heartbeat frequencies in all target channels across use-defined time windows. The entire workflow may take less than 5 minutes to run on a small dataset (a few hours of data) if (1) `params` are chosen with speed in mind, (2) parallel computing is enabled and (3) the code is run on a modern machine. Conversely, large datasets (spanning several days) may take hours or even days to run. In extreme situations, datasets may be too large for the machine to handle (due to memory limitations), and one is better off processing batches at a time.
 #'
@@ -42,7 +42,7 @@
 #' * [pulse_heart()] outlines the algorithm used to identify peaks in the heart beat wave data and some of its limitations.
 #' * [pulse_doublecheck()] explains the method used to detect situations when the algorithm's processing resulted in an heart beat frequency double the real value.
 #'
-#' Also check [pulse_summarise()] for important info about oversampling and strategies to handle it while processing PULSE data with the [`heartbeatr-package`].
+# Also check [pulse_summarise()] for important info about oversampling and strategies to handle it while processing PULSE data with the [`heartbeatr-package`].
 #'
 #' @section BPM:
 #' To convert to Beats Per Minute (bpm), simply multiply `hz` and `ci` by 60.
@@ -60,7 +60,7 @@
 #' * `ci`, confidence interval (hz ± ci)
 #' * `keep`, logical indicating whether data points meet N and SD criteria
 #' * `d_r`, ratio of consecutive asymmetric peaks
-#' * `d_m`, magnitude of difference between the two groups of asymmetric peaks
+# * `d_m`, magnitude of difference between the two groups of asymmetric peaks
 #' * `d_f`, logical flagging data points where heart beat frequency is likely double the real value
 #'
 #' @export
@@ -71,7 +71,7 @@
 #'  * [approx()] is used by [pulse_interpolate()] for the linear interpolation of PULSE data
 #'  * [ksmooth()] is used by [pulse_smooth()] for the kernel smoothing of PULSE data
 #'  * [pulse_read()], [pulse_split()], [pulse_optimize()], [pulse_heart()] and [pulse_doublecheck()] are the functions needed for the complete PULSE processing workflow
-#'  * [pulse_summarise()] can be used to reduce the number of data points returned
+ # * [pulse_summarise()] can be used to reduce the number of data points returned
 #'
 #' @examples
 #' ## Begin prepare data ----
@@ -140,7 +140,8 @@
 #'								pulse_data_split,
 #'								interpolation_freq = 40,
 #'								bandwidth = 0.2,
-#'								raw_v_smoothed = TRUE)
+#'								raw_v_smoothed = TRUE,
+#'								multi = pulse_data$multi)
 #'
 #' heart_rates <- pulse_heart(
 #'						pulse_data_optimized,
@@ -153,6 +154,8 @@
 #'						correct = TRUE)
 #'
 PULSE <- function(paths, window_width_secs, window_shift_secs, min_data_points = 0.8, interpolation_freq = 40, bandwidth = 0.2, N = 3, SD = 0.5, raw_v_smoothed = TRUE, correct = TRUE, with_progress = NULL, discard_channels = NULL, msg = TRUE) {
+	if (length(paths) == 1) if (file.info(paths)$isdir) paths <- dir(paths, full.names = TRUE) %>% tolower() %>% stringr::str_subset(".csv$")
+
 	## CHECKS INITIATED ## ------------------- ##
 
 	# pulse_read
@@ -172,7 +175,7 @@ PULSE <- function(paths, window_width_secs, window_shift_secs, min_data_points =
 	# pulse_optimize
 	stopifnot(is.numeric(interpolation_freq))
 	stopifnot(length(interpolation_freq) == 1)
-	if (!(interpolation_freq == 0 | interpolation_freq >= 40)) stop("\n  --> [x] interpolation_freq must be zero or a value >= 40")
+	if (!(interpolation_freq == 0 | interpolation_freq >= 40)) cli::cli_abort("interpolation_freq must be zero or a value >= 40")
 	stopifnot(is.numeric(bandwidth))
 	stopifnot(length(bandwidth) == 1)
 
@@ -187,11 +190,11 @@ PULSE <- function(paths, window_width_secs, window_shift_secs, min_data_points =
 		magrittr::extract(2)
 	if (msg) {
 		if (current_strategy == "sequential") {
-			message("  --> [i] parallel computing not engaged")
-			message("  --> [i] if too slow, type ?PULSE for help on how to use parallel computing\n")
+			cli::cli_alert("parallel computing not engaged")
+			cli::cli_alert("if too slow, type ?PULSE for help on how to use parallel computing")
 		} else {
-			message("  --> [i] parallel computing engaged")
-			message(stringr::str_c("  --> [i] current future strategy: ", current_strategy, "\n"))
+			cli::cli_alert("parallel computing engaged")
+			cli::cli_alert(stringr::str_c("[i] current future strategy: ", current_strategy, "\n"))
 		}
 	}
 
@@ -203,33 +206,42 @@ PULSE <- function(paths, window_width_secs, window_shift_secs, min_data_points =
 	)
 
 	# discard unused/unwanted channels
-	if (!is.null(discard_channels)) {
-		discard_channels <- stringr::str_to_lower(discard_channels)
-		not_match <- discard_channels[!(discard_channels %in% colnames(pulse_data$data))]
-		if (length(not_match)) stop(stringr::str_c("\n  --> [x] all elements of 'discard_channels' must be exact matches to a channel ID\n  --> [i] offending elements: ", stringr::str_c(not_match, collapse = ", ")))
+	if (pulse_data$multi) {
+		if (!is.null(discard_channels)) {
+			discard_channels <- stringr::str_to_lower(discard_channels)
+			not_match <- discard_channels[!(discard_channels %in% colnames(pulse_data$data))]
+			if (length(not_match)) cli::cli_abort(stringr::str_c("\n  --> [x] all elements of 'discard_channels' must be exact matches to a channel ID\n  --> [i] offending elements: ", stringr::str_c(not_match, collapse = ", ")))
 
-		dups <- discard_channels[duplicated(discard_channels)]
-		if (length(dups)) warning(stringr::str_c("  --> [x] all elements of 'discard_channels' should be unique channel IDs\n  --> [i] duplicated elements: ", stringr::str_c(dups, collapse = ", "), "\n  --> [i] work not interrupted, but consider revising 'discard_channels'"))
+			dups <- discard_channels[duplicated(discard_channels)]
+			if (length(dups)) cli::cli_warn(stringr::str_c("  --> [x] all elements of 'discard_channels' should be unique channel IDs\n  --> [i] duplicated elements: ", stringr::str_c(dups, collapse = ", "), "\n  --> [i] work not interrupted, but consider revising 'discard_channels'"))
 
-		pulse_data$data <- dplyr::select(pulse_data$data, -dplyr::any_of(discard_channels))
+			pulse_data$data <- dplyr::select(pulse_data$data, -dplyr::any_of(discard_channels))
+		}
+
+		# split data
+		pulse_data_split <- pulse_split(
+			pulse_data,
+			window_width_secs = window_width_secs,
+			window_shift_secs = window_shift_secs,
+			min_data_points = min_data_points,
+			with_progress = with_progress,
+			msg = FALSE
+		)
+	} else {
+		pulse_data_split <- tibble::tibble(
+			smoothed = FALSE,
+			data = pulse_data$data$data
+		) %>%
+			tibble::rowid_to_column("i")
 	}
-
-	# split data
-	pulse_data_split <- pulse_split(
-		pulse_data,
-		window_width_secs = window_width_secs,
-		window_shift_secs = window_shift_secs,
-		min_data_points = min_data_points,
-		with_progress = with_progress,
-		msg = FALSE
-	)
 
 	# optimize
 	pulse_data_optimized <- pulse_optimize(
 		pulse_data_split,
 		interpolation_freq = interpolation_freq,
 		bandwidth = bandwidth,
-		raw_v_smoothed = TRUE
+		raw_v_smoothed = TRUE,
+		multi = pulse_data$multi
 	)
 
 	# heart rate
@@ -247,6 +259,110 @@ PULSE <- function(paths, window_width_secs, window_shift_secs, min_data_points =
 		correct = correct
 	)
 
+	if (!pulse_data$multi) {
+		heart_rates <- dplyr::bind_cols(
+			dplyr::select(pulse_data$data, -data, -time),
+			dplyr::select(heart_rates, -id)
+		) %>%
+			dplyr::relocate(i)
+	}
+
 	# return
 	heart_rates
+}
+#
+# future::plan("multisession")
+# folder <- "~/RS Dropbox/Rui Seabra/RS/bio/tasks/hb/hb_pulse_package/test_data_copy/large_dataset_rocio"
+# folder <- "~/RS Dropbox/Rui Seabra/RS/bio/tasks/hb/hb_pulse_package/test_data_copy/one_channel_mariana"
+# allow_dir_create = TRUE
+# chunks = 3
+# bind_data = TRUE
+# window_width_secs = 30
+# window_shift_secs = 60
+# min_data_points   = 0.8
+# interpolation_freq = 40
+# bandwidth   = 0.2
+# raw_v_smoothed = TRUE
+# N = 3
+# SD = 0.5
+# correct = TRUE
+# with_progress = TRUE
+# discard_channels = NULL
+# msg = TRUE
+
+#' Process PULSE data file by file  (`STEPS 1-5`)
+#'
+#' @description
+#' This function runs `PULSE()` file by file, instead of attempting to read all files at once. This is required when dataset are too large (more than 20-30 files), as otherwise the system may become stuck due to the amount of data that needs to be kept in the memory. Because the results of processing data for each hourly file in the dataset are saved to a `job_folder`, `PULSE_by_file()` has the added benefit of allowing the entire job to be stopped and resumed, facilitating the advance in the processing even if a crash occurs.
+#'
+#' @inheritParams pulse_read
+#' @inheritParams pulse_split
+#' @inheritParams pulse_optimize
+#' @inheritParams pulse_heart
+#' @inheritParams pulse_doublecheck
+#' @inheritParams PULSE
+#' @param folder The path to a folder where several PULSE files are stored
+#' @param allow_dir_create Logical, defaults to FALSE. Only when set to TRUE does `PULSE_by_file()` actually do anything. This is to force the user to accept that a job_folder will be created inside of the `folder` supplied - without this folder `PULSE_by_file()` cannot operate. It is STRONGLY advised to maintain a copy of the dataset being processed to avoid any inadvertent data loss. By setting `allow_dir_create` to TRUE the user is taking responsibility for the management of their files.
+#' @param chunks Numeric, defaults to 3; Corresponds to the number of files processed at once during each `for` cycle; higher numbers result in a quicker and more efficient operation, but shouldn't be set too high, as otherwise the system may become overwhelmed once more (which is what `PULSE_by_file()` is designed to avoid).
+#' @param bind_data Logical, defaults to TRUE. If set to TRUE, after processing all chunks, `PULSE_by_file()` will try to read all files in the job_folder and return a single unified tibble with all data. Please be aware that there's a possibility that if the dataset is very large, the machine may become overwhelmed and crash due to lack of memory (still, all files stored in the job_folder will remain intact). If set to FALSE, `PULSE_by_file()` will return nothing after completing the processing of all files in the dataset, and the user must instead manually handle the reading and collating of all processed data in the job_folder.
+#'
+#' @export
+#'
+#' @seealso [PULSE()]
+#'
+#' @examples
+#' ##
+PULSE_by_file <- function(folder, allow_dir_create = FALSE, chunks = 3, bind_data = TRUE, window_width_secs, window_shift_secs, min_data_points = 0.8, interpolation_freq = 40, bandwidth = 0.2, N = 3, SD = 0.5, raw_v_smoothed = TRUE, correct = TRUE, with_progress = NULL, discard_channels = NULL, msg = TRUE) {
+
+	if (!allow_dir_create) cli::cli_abort("you have not provided explicit permission for PULSE_chunks to create the necessary job folder; please set allow_dir_create = TRUE to proceed")
+
+	paths <- folder %>%
+		dir(full.names = TRUE, recursive = TRUE) %>%
+		stringr::str_to_lower() %>%
+		stringr::str_subset(".csv$")
+
+	if (!all(purrr::map_lgl(paths, is.pulse))) cli::cli_abort("not all files in the target folder are PULSE files")
+
+	job_folder <- file.path(folder, "ongoing_job")
+	dir.create(job_folder, showWarnings = FALSE)
+
+	n <- length(paths)
+	chunks_split <- tibble::tibble(
+		split = split(1:n, rep(1:ceiling(n/chunks), each = chunks)[1:n])
+	) %>%
+		tibble::rowid_to_column("row") %>%
+		dplyr::mutate(row = formatC(row, width = nchar(nrow(.)), flag = "0")) %>%
+		dplyr::mutate(fn = file.path(job_folder, paste0("chunk_", row, ".RDS")))
+
+	for (i in 1:nrow(chunks_split)) {
+		fn <- chunks_split$fn[i]
+		if (!file.exists(fn)) {
+			cli::cli_alert(paste(chunks_split$row[i], "/", nrow(chunks_split)))
+			x <- PULSE(
+				paths = paths[chunks_split$split[[i]]],
+				window_width_secs  = window_width_secs,
+				window_shift_secs  = window_shift_secs,
+				min_data_points    = min_data_points,
+				interpolation_freq = interpolation_freq,
+				bandwidth          = bandwidth,
+				raw_v_smoothed     = raw_v_smoothed,
+				N                  = N,
+				SD                 = SD,
+				correct            = correct,
+				with_progress      = with_progress,
+				discard_channels   = discard_channels,
+				msg                = ifelse(i == 1, msg, FALSE)
+			)
+			saveRDS(x, fn)
+		}
+	}
+
+	cli::cli_alert_success("all files read and heart rates computed")
+	cli::cli_alert_info(paste("data stored in:", job_folder))
+	if (bind_data) {
+		purrr::map_dfr(chunks_split$fn, readRDS)
+	} else {
+		cli::cli_warn("data not read and bound together because user set bind_data to FALSE")
+		NULL
+	}
 }

@@ -3,8 +3,10 @@ test_that("returns the correct structure: a list with one or more elements", {
 	window_width_secs = 30
 	x1 <- pulse_split(pulse_data, window_width_secs = window_width_secs, window_shift_secs = 60, min_data_points = 0.8, with_progress = FALSE, msg = FALSE)
 	x2 <- list(
-		data = pulse_data$data %>% dplyr::select(1:5),
-		freq = pulse_data$freq
+		data  = pulse_data$data %>% dplyr::select(1:5),
+		multi = TRUE,
+		vrsn  = 2.1,
+		freq  = pulse_data$freq
 	) %>%
 		pulse_split(window_width_secs = window_width_secs, window_shift_secs = 60, min_data_points = 0.8, with_progress = FALSE, msg = FALSE)
 

@@ -61,7 +61,6 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \code{ci}, confidence interval (hz ± ci)
 \item \code{keep}, logical indicating whether data points meet N and SD criteria
 \item \code{d_r}, ratio of consecutive asymmetric peaks
-\item \code{d_m}, magnitude of difference between the two groups of asymmetric peaks
 \item \code{d_f}, logical flagging data points where heart beat frequency is likely double the real value
 }
 }
@@ -73,12 +72,9 @@ A tibble with nrows = (number of channels) * (number of windows in \code{pulse_d
 \item \verb{step 3} -- \code{\link[=pulse_optimize]{pulse_optimize()}}
 \item \verb{step 4} -- \code{\link[=pulse_heart]{pulse_heart()}}
 \item \verb{step 5} -- \code{\link[=pulse_doublecheck]{pulse_doublecheck()}}
-\item \verb{extra step} -- \code{\link[=pulse_summarise]{pulse_summarise()}}
 }
 
 This is a wrapper function that provides a shortcut to running all 5 steps of the PULSE multi-channel data processing pipeline in sequence, namely \code{pulse_read()} >> \code{pulse_split()} >> \code{pulse_optimize()} >> \code{pulse_heart()} >> \code{pulse_doublecheck()}.
-
-\strong{IMPORTANT NOTE}: \code{\link[=pulse_summarise]{pulse_summarise()}} is not included in \code{\link[=PULSE]{PULSE()}} because it isn't essential for the PULSE data processing pipeline. However, in many instances it's important to run the output from \code{\link[=PULSE]{PULSE()}} through \code{pulse_summarise()} before analyzing the estimated heart beat frequencies. This is because certain combinations of parameters may result in too many data points (leading to oversampling), a situation that can be resolved with \code{pulse_summarise()}. Be sure to check its help file (\code{?pulse_summarise}) before processing any large PULSE datasets, to understand the two main strategies that can be employed to handle oversampling and reduce sensitivity to pockets of poor-quality data across a dataset.
 
 \code{PULSE()} takes a vector of \code{paths} to PULSE csv files produced by a PULSE multi-channel system during \strong{a single experiment} and automatically computes the heartbeat frequencies in all target channels across use-defined time windows. The entire workflow may take less than 5 minutes to run on a small dataset (a few hours of data) if (1) \code{params} are chosen with speed in mind, (2) parallel computing is enabled and (3) the code is run on a modern machine. Conversely, large datasets (spanning several days) may take hours or even days to run. In extreme situations, datasets may be too large for the machine to handle (due to memory limitations), and one is better off processing batches at a time.
 }
@@ -104,8 +100,6 @@ Check the help files of the underlying functions to obtain additional details ab
 \item \code{\link[=pulse_heart]{pulse_heart()}} outlines the algorithm used to identify peaks in the heart beat wave data and some of its limitations.
 \item \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} explains the method used to detect situations when the algorithm's processing resulted in an heart beat frequency double the real value.
 }
-
-Also check \code{\link[=pulse_summarise]{pulse_summarise()}} for important info about oversampling and strategies to handle it while processing PULSE data with the \code{\link{heartbeatr-package}}.
 }
 
 \section{BPM}{
@@ -180,7 +174,8 @@ pulse_data_optimized <- pulse_optimize(
 							pulse_data_split,
 							interpolation_freq = 40,
 							bandwidth = 0.2,
-							raw_v_smoothed = TRUE)
+							raw_v_smoothed = TRUE,
+							multi = pulse_data$multi)
 
 heart_rates <- pulse_heart(
 					pulse_data_optimized,
@@ -200,6 +195,5 @@ heart_rates <- pulse_doublecheck(
 \item \code{\link[=approx]{approx()}} is used by \code{\link[=pulse_interpolate]{pulse_interpolate()}} for the linear interpolation of PULSE data
 \item \code{\link[=ksmooth]{ksmooth()}} is used by \code{\link[=pulse_smooth]{pulse_smooth()}} for the kernel smoothing of PULSE data
 \item \code{\link[=pulse_read]{pulse_read()}}, \code{\link[=pulse_split]{pulse_split()}}, \code{\link[=pulse_optimize]{pulse_optimize()}}, \code{\link[=pulse_heart]{pulse_heart()}} and \code{\link[=pulse_doublecheck]{pulse_doublecheck()}} are the functions needed for the complete PULSE processing workflow
-\item \code{\link[=pulse_summarise]{pulse_summarise()}} can be used to reduce the number of data points returned
 }
 }

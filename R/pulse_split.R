@@ -80,7 +80,7 @@
 #'   future::plan()}
 pulse_split <- function(pulse_data, window_width_secs, window_shift_secs, min_data_points, with_progress = NULL, msg = TRUE) {
   ## CHECKS INITIATED ## ------------------- ##
-  stopifnot(identical(names(pulse_data), c("data", "freq")))
+  stopifnot(identical(names(pulse_data), c("data", "multi", "vrsn", "freq")))
   stopifnot(is.pulse.tbl(pulse_data$data))
   stopifnot(is.numeric(pulse_data$freq))
   stopifnot(is.numeric(window_width_secs))
@@ -98,11 +98,11 @@ pulse_split <- function(pulse_data, window_width_secs, window_shift_secs, min_da
     magrittr::extract(2)
   if (msg) {
     if (current_strategy == "sequential") {
-      message("  --> [i] parallel computing not engaged")
-      message("  --> [i] if too slow, type ?PULSE for help on how to use parallel computing\n")
+      cli::cli_alert("parallel computing not engaged")
+      cli::cli_alert("if too slow, type ?PULSE for help on how to use parallel computing")
     } else {
-      message("  --> [i] parallel computing engaged")
-      message(stringr::str_c("  --> [i] current future strategy: ", current_strategy, "\n"))
+      cli::cli_alert("parallel computing engaged")
+      cli::cli_alert(stringr::str_c("[i] current future strategy: ", current_strategy, "\n"))
     }
   }
 
